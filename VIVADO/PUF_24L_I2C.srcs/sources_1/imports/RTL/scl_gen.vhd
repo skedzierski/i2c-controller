@@ -30,7 +30,7 @@ begin
         port map(
             clk => fpga_clk,
             rst => counter_reset,
-            preload => std_logic_vector(to_unsigned(500, 16)),
+            preload => X"01F4", -- 500 decimal
             o_cnt => overflow_500
         );
 
@@ -39,7 +39,7 @@ begin
         port map(
             clk => fpga_clk,
             rst => counter_reset,
-            preload => std_logic_vector(to_unsigned(250, 16)),
+            preload => X"00FA", -- 250 decimal
             o_cnt => overflow_250
         );
     process(fpga_clk, rst, gen_start, gen_stop, CURRENT_STATE, overflow_500, overflow_250, rep_start) is

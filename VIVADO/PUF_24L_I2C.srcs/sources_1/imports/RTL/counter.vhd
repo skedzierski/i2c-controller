@@ -22,13 +22,13 @@ begin
     process(clk, rst) is
     begin
         if (rst = '0') then
-            current_val <= std_logic_vector(to_unsigned(0, current_val'length)); -- natural
+            current_val <= X"0000"; -- natural
             o_cnt <= '0';
         elsif (clk'event and clk = '1') then
             current_val <= std_logic_vector(unsigned(current_val) + 1);
             if (current_val = preload) then
                 o_cnt <= '1';
-                current_val <= std_logic_vector(to_unsigned(0, current_val'length));
+                current_val <= X"0000";
             else
                 o_cnt <= '0';
             end if;

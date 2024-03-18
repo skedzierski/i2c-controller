@@ -45,6 +45,8 @@ begin
     process(fpga_clk, rst, gen_start, gen_stop, CURRENT_STATE, overflow_500, overflow_250, rep_start) is
     begin
         counter_reset <= '1';
+        o_scl <= '1';
+        NEXT_STATE <= IDLE;
         case CURRENT_STATE is
             when IDLE =>
                 if(rst = '0') then
@@ -72,6 +74,7 @@ begin
                 NEXT_STATE <= SCL_LOW;
 
             when SCL_LOW =>
+                o_scl <= '0';
                 if(overflow_500 = '1') then
                     NEXT_STATE <= SCL_HI_EDGE;
                 else 
@@ -86,15 +89,13 @@ begin
             when SCL_HI =>
                 if(overflow_500 = '1') then
                     NEXT_STATE <= SCL_LOW_EDGE;
-                else 
-                    NEXT_STATE <= SCL_HI;
-                end if;
-                if (rep_start = '1' AND overflow_250 = '1') then
+                elsif (rep_start = '1' AND overflow_250 = '1') then
                     NEXT_STATE <= START;
-                end if;
-                if(gen_stop = '1' AND overflow_250 = '1') then
+                elsif(gen_stop = '1' AND overflow_250 = '1') then
                     --clk_cnt <= 0;
                     NEXT_STATE <= STOP_WAIT;
+                else
+                    NEXT_STATE <= SCL_HI;
                 end if;
 
             when STOP_WAIT =>

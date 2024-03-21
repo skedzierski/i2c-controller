@@ -6,3 +6,5 @@ VIVADO/PUF_24L_I2C.ip_user_files
 *.str
 .Xil
 VIVADO/.Xil
+.history
+pozniak

@@ -1,0 +1,3 @@
+transmisja/odczyt danych jest wyzwalana gdy sygnały ds, as są w stanie wysokim
+po zakończeniu transmisji pin irq jest w stanie wysokim przez jeden cykl zegara
+bit lsb przyjdzie jako pierwszy

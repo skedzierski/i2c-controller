@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.numeric_std.all; 
 
+use work.i2c_pkg.all;
+
 entity scl_gen is
 
 port(
@@ -9,22 +11,22 @@ port(
     rst: in std_logic;
     gen_start: in std_logic;
     gen_stop: in std_logic;
-    o_scl: out std_logic
+    o_scl: out std_logic;
+    o_state: out SCL_STATE
 );
 
 end entity;
 
 architecture rtl of scl_gen is
-
-    type T_STATE is (IDLE, START, SCL_LOW_EDGE, SCL_LOW, SCL_HI_EDGE, SCL_HI, STOP_WAIT);
-    signal CURRENT_STATE : T_STATE := IDLE;
-    signal NEXT_STATE: T_STATE;
+    signal CURRENT_STATE : SCL_STATE := IDLE;
+    signal NEXT_STATE: SCL_STATE;
     signal rep_start: std_logic;
     signal counter_reset: std_logic;
     signal overflow_500, overflow_250: std_logic;
 begin
     
     rep_start <= '0';
+    o_state <= CURRENT_STATE;
     count_500: entity work.generic_counter(rtl)
         generic map(counter_width => 16)
         port map(

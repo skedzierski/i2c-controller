@@ -6,7 +6,6 @@ entity i2c is
     port(
         num_bytes_to_receive: in natural;
         data_bus: inout std_logic_vector(15 downto 0);--data bus
-        addr_bus: in std_logic_vector(7 downto 0);   --address bus
         rw: in std_logic;                            --rw=1 - write request
         rst: in std_logic;                           --reset active low
         clk: in std_logic;                           --fpga clock

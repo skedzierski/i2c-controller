@@ -10,12 +10,12 @@ end entity;
 
 architecture sim of registers_test is
     signal s_addr,  
-           s_data_to_write,
            s_data_to_read,
-           s_data,
            s_addr_reg,
            s_dtr,
            s_drr: std_logic_vector(7 downto 0);
+    signal s_data : std_logic_vector(7 downto 0) := (others => '0');
+    signal s_data_to_write : std_logic_vector(7 downto 0) := (others => '0');
     signal s_ctr: ctr_bits;
     signal s_sr: sr_bits;
     signal s_as, s_ds, s_rw, s_rst, clk: std_logic;
@@ -38,6 +38,30 @@ port map (
     drr => s_drr
 );
 
+process(
+    s_addr,  
+    s_data_to_write,
+    s_data_to_read,
+    s_data,
+    s_addr_reg,
+    s_dtr,
+    s_drr,
+    s_ctr,
+    s_sr,
+    s_as,
+    s_ds,
+    s_rw,
+    s_rst
+) is
+begin
+    if s_rw = '0' then
+        s_data <= s_data_to_write;
+    else
+        s_data <= "ZZZZZZZZ";
+        s_data_to_read <= s_data;
+    end if;
+end process;
+
 process is begin
     clk <= '0';
     wait for 100 ps;
@@ -45,42 +69,25 @@ process is begin
     wait for 100 ps;
 end process;
 
-process(s_addr, 
-s_data, 
-s_data_to_read,
-s_data,
-s_addr_reg,
-s_dtr,
-s_drr,
-s_ctr,
-s_sr,
-s_as, s_ds, s_rw, s_rst, clk) is
-begin
-    if s_rw = '0' then
-        s_data_to_write <= s_data;
-    else
-        s_data_to_read <= s_data;
-    end if;
-end process;
-
 process is 
     variable seed1, seed2: positive;
     variable x : real;
     variable some_junk: sample_data;
 begin
-    s_as <= '0';
+    s_rst <= '1';
+    wait for 10 ns;
+    s_rst <= '0';
+    wait for 1 us;
+    s_rst <= '1';
+    s_as <= '1';
     s_sr <= stlv_to_sr_bits(X"FF");
     s_drr <= X"AE";
-    s_ds <= '0';
+    s_ds <= '1';
     s_rw <= '0';
     s_rst <= '1';
-    s_addr <= X"00";
+    s_addr <= X"01";
     s_data_to_write <= X"BE";
     wait for 100 ns;
-    s_rst <= '0';
-    wait for 10 ns;
-    s_rst <= '1';
-    wait for 1 us;
     s_addr <= X"AA";
     s_data_to_write <= X"69";
     wait for 10 ns;
@@ -114,7 +121,7 @@ begin
 
     s_rw <= '1';
     s_ds <= '0';
-    reading_data: for i in 0 to 5 loop
+    reading_data: for i in 0 to 6 loop
         s_addr <= std_logic_vector(to_unsigned(i, s_addr'length));
         s_as <= '1';
         wait for 10 ns;

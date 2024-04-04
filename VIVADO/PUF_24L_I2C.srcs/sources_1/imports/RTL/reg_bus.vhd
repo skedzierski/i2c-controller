@@ -45,68 +45,68 @@ begin
             data_receive)
     is 
     begin
-        next_control <= stlv_to_ctr_bits(X"00");
-        next_addr <= X"00";
-        next_data_transmit <= X"00";
-        next_status <= sr;
-        dtr <= data_transmit;
-        next_data_receive <= drr;
-        ctr <= control;
-        o_addr_reg <= addr;
-        next_data <= X"00";
-        control_enable <= '0';
-        addr_enable <= '0';
-        data_transmit_enable <= '0';
+         next_control <= stlv_to_ctr_bits(X"00");
+         next_addr <= X"00";
+         next_data_transmit <= X"00";
+         next_status <= sr;
+         dtr <= data_transmit;
+         next_data_receive <= drr;
+         ctr <= control;
+         o_addr_reg <= addr;
+         control_enable <= '0';
+         addr_enable <= '0';
+         data_transmit_enable <= '0';
+         next_data <= X"00";
 
-        if rw = '0' and ds = '1' and as = '1' then
-            case i_addr is
-                when X"01" => 
-                    control_enable <= '1';
-                    next_control <= stlv_to_ctr_bits(data);
-                when X"04" => 
-                    addr_enable <= '1';
-                    next_addr <= data;
-                when X"05" => 
-                    data_transmit_enable <= '1';
-                    next_data_transmit <= data;
-                when others => null;
-            end case;
-        elsif rw = '1' and as = '1' then
-            case i_addr is
-                when X"01" => next_data <= ctr_bits_to_stlv(control);
-                when X"02" => next_data <= sr_bits_to_stlv(status);
-                when X"05" => next_data <= data_transmit;
-                when X"06" => next_data <= data_receive;
-                when others => null;
-            end case;
-        end if;
+         if rw = '0' and ds = '1' and as = '1' then
+             case i_addr is
+                 when X"01" => 
+                     control_enable <= '1';
+                     next_control <= stlv_to_ctr_bits(data);
+                 when X"04" => 
+                     addr_enable <= '1';
+                     next_addr <= data;
+                 when X"05" => 
+                     data_transmit_enable <= '1';
+                     next_data_transmit <= data;
+                 when others => null;
+             end case;
+         elsif rw = '1' and as = '1' then
+             case i_addr is
+                 when X"01" => next_data <= ctr_bits_to_stlv(control);
+                 when X"02" => next_data <= sr_bits_to_stlv(status);
+                 when X"05" => next_data <= data_transmit;
+                 when X"06" => next_data <= data_receive;
+                 when others => null;
+             end case;
+         end if;
     end process;
 
     process(clk, rst) is
     begin
         if rst = '0' then
-            control <= stlv_to_ctr_bits(X"00");
-            status <= stlv_to_sr_bits(X"00");
-            addr <= X"00";
-            data_transmit <= X"00";
-            data_receive <= X"00";
-            data <= X"00";
+             control <= stlv_to_ctr_bits(X"00");
+             status <= stlv_to_sr_bits(X"00");
+             addr <= X"00";
+             data_transmit <= X"00";
+             data_receive <= X"00";
+             data <= "ZZZZZZZZ";
         elsif rising_edge(clk) then
-            if control_enable = '1' then
-                control <= next_control;
-            end if;
+             if control_enable = '1' then
+                 control <= next_control;
+             end if;
 
-            status <= next_status;
+             status <= next_status;
             
-            if addr_enable = '1' then
-                addr <= next_addr;
-            end if;
-            if data_transmit_enable = '1' then
-                data_transmit <= next_data_transmit;
-            end if;
+             if addr_enable = '1' then
+                 addr <= next_addr;
+             end if;
+             if data_transmit_enable = '1' then
+                 data_transmit <= next_data_transmit;
+             end if;
 
             data_receive <= next_data_receive;
-            if rw = '0' then
+            if rw = '1' and as = '1' then
                 data <= next_data;
             end if;
         end if;

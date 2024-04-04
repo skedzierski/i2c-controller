@@ -11,7 +11,7 @@ entity reg_map is
         rw: in std_logic;
         rst: in std_logic;
         clk: in std_logic;
-        ctr: out ctr_bits;
+        ctr: inout ctr_bits;
         sr: in sr_bits;
         o_addr_reg: out std_logic_vector(7 downto 0);
         dtr: out std_logic_vector(7 downto 0);
@@ -45,40 +45,41 @@ begin
             data_receive)
     is 
     begin
-         next_control <= stlv_to_ctr_bits(X"00");
-         next_addr <= X"00";
-         next_data_transmit <= X"00";
-         next_status <= sr;
-         dtr <= data_transmit;
-         next_data_receive <= drr;
-         ctr <= control;
-         o_addr_reg <= addr;
-         control_enable <= '0';
-         addr_enable <= '0';
-         data_transmit_enable <= '0';
-         next_data <= X"00";
-
-         if rw = '0' and ds = '1' and as = '1' then
-             case i_addr is
-                 when X"01" => 
-                     control_enable <= '1';
-                     next_control <= stlv_to_ctr_bits(data);
-                 when X"04" => 
-                     addr_enable <= '1';
-                     next_addr <= data;
-                 when X"05" => 
-                     data_transmit_enable <= '1';
-                     next_data_transmit <= data;
-                 when others => null;
-             end case;
-         elsif rw = '1' and as = '1' then
-             case i_addr is
-                 when X"01" => next_data <= ctr_bits_to_stlv(control);
-                 when X"02" => next_data <= sr_bits_to_stlv(status);
-                 when X"05" => next_data <= data_transmit;
-                 when X"06" => next_data <= data_receive;
-                 when others => null;
-             end case;
+        next_control <= stlv_to_ctr_bits(X"00");
+        next_addr <= X"00";
+        next_data_transmit <= X"00";
+        next_status <= sr;
+        dtr <= data_transmit;
+        next_data_receive <= drr;
+        o_addr_reg <= addr;
+        control_enable <= '0';
+        addr_enable <= '0';
+        data_transmit_enable <= '0';
+        next_data <= X"00";
+        ctr <= stlv_to_ctr_bits(X"00");
+        if rw = '0' and ds = '1' and as = '1' then
+            ctr <= next_control;
+            case i_addr is
+            when X"01" => 
+                control_enable <= '1';
+                next_control <= stlv_to_ctr_bits(data);
+            when X"04" => 
+                addr_enable <= '1';
+                next_addr <= data;
+            when X"05" => 
+                data_transmit_enable <= '1';
+                next_data_transmit <= data;
+            when others => null;
+        end case;
+        elsif rw = '1' and as = '1' then
+            control <= ctr;
+            case i_addr is
+                when X"01" => next_data <= ctr_bits_to_stlv(control);
+                when X"02" => next_data <= sr_bits_to_stlv(status);
+                when X"05" => next_data <= data_transmit;
+                when X"06" => next_data <= data_receive;
+                when others => null;
+            end case;
          end if;
     end process;
 

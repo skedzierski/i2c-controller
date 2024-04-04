@@ -93,7 +93,7 @@ package body i2c_2_pkg is
     constant ctr_reg_addr : std_logic_vector(7 downto 0) := X"04";
     constant status_reg_addr : std_logic_vector(7 downto 0) := X"08";
     constant address_reg_addr : std_logic_vector(7 downto 0) := X"0A";
-    constant data_transmit_reg_addr : std_logic_vector(7 downto 0) := X"0B";
-    constant 
+    constant data_transmit_reg_addr : std_logic_vector(7 downto 0) := X"0B"; 
+
     
 end package body;

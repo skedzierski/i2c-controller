@@ -60,13 +60,13 @@ begin
         if rw = '0' and ds = '1' and as = '1' then
             ctr <= next_control;
             case i_addr is
-            when X"01" => 
+            when X"04" => 
                 control_enable <= '1';
                 next_control <= stlv_to_ctr_bits(data);
-            when X"04" => 
+            when X"0B" => 
                 addr_enable <= '1';
                 next_addr <= data;
-            when X"05" => 
+            when X"0E" => 
                 data_transmit_enable <= '1';
                 next_data_transmit <= data;
             when others => null;
@@ -74,10 +74,10 @@ begin
         elsif rw = '1' and as = '1' then
             control <= ctr;
             case i_addr is
-                when X"01" => next_data <= ctr_bits_to_stlv(control);
-                when X"02" => next_data <= sr_bits_to_stlv(status);
-                when X"05" => next_data <= data_transmit;
-                when X"06" => next_data <= data_receive;
+                when X"04" => next_data <= ctr_bits_to_stlv(control);
+                when X"08" => next_data <= sr_bits_to_stlv(status);
+                when X"0E" => next_data <= data_transmit;
+                when X"00" => next_data <= data_receive;
                 when others => null;
             end case;
          end if;

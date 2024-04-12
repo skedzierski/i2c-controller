@@ -13,7 +13,7 @@ entity master_slave_fsm is
         addr_reg: in std_logic_vector(7 downto 0);
         data_transmit_reg: in std_logic_vector(7 downto 0);
         data_receive_reg: out std_logic_vector(7 downto 0);
-        ack_receive: out std_logic;
+        ack_receive: out std_logic
     );
 end entity;
 

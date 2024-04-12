@@ -121,6 +121,7 @@ begin
         tx_data <= X"00";
 
         if control_reg.en = '1' then
+            status_reg <= stlv_to_sr_bits(X"00");
             case current_state is
             when IDLE =>
                     if rst = '0' then
@@ -146,6 +147,7 @@ begin
                     if control_reg.mode_sel = '1' and control_reg.transmit_dir = '0' and sda = '0' then --master receive
                         next_state <= RCV_DATA;
                     elsif control_reg.mode_sel = '0' and control_reg.transmit_dir = '0' and addr_match then -- slave receive
+                        status_reg.addr_match <= '1';
                         next_state <= RCV_DATA;
                         ack_receive <= '1';
                     elsif control_reg.mode_sel = '1' and control_reg.transmit_dir = '1' and sda = '0' then -- master xmit
@@ -189,6 +191,7 @@ begin
                     if sda = '0' then
                         next_state <= XMIT_DATA;
                     else
+                        status_reg.tip <= '1';
                         next_state <= STOP;
                     end if;
 

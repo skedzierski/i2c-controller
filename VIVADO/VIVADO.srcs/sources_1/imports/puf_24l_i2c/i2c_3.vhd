@@ -103,15 +103,14 @@ begin
             received_msb <= '0';
             sda <= 'W';
             s_gen_start <= '0';
-            s_next_data_to_write <= s_data_to_write;
             next_state <= IDLE;
+            s_next_data_to_write <= a_rom(rom_index);
             next_rom_index <= rom_index;
             next_edge_counter <= edge_counter;
             case (current_state) is
                 when IDLE =>
                     if btn = '1' then
                         next_state <= START;
-                        s_next_data_to_write <= a_rom(rom_index);
                     else
                         next_state <= IDLE;
                     end if;

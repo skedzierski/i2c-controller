@@ -5,7 +5,7 @@ entity i2c_3_memory is
     port(
         clk: in std_logic;
         rst: in std_logic;                                            
-        scl: inout std_logic;
+        scl: in std_logic;
         sda: inout std_logic 
     );
 end entity;
@@ -25,7 +25,7 @@ begin
         rst => rst,
         shift_enable => s_shift_enable_read,
         parallel_data => s_data_to_read,
-        serial_data => sda_i,
+        serial_data => sda,
         irq => read_done
     );
 
@@ -39,14 +39,15 @@ begin
         rst => rst,
         shift_enable => s_shift_enable_write,
         parallel_data => s_data_to_write,
-        serial_data => sda_o,
+        serial_data => sda,
         irq => send_done
     );
     
     process is begin
+    sda <= 'Z';
         s_shift_enable_write <= '0';
         s_shift_enable_read <= '0';
-        sda <= sda_i;
+        --sda <= sda_i;
     --wait for start
         wait until scl = '1' and falling_edge(sda);
     --read address
@@ -60,7 +61,7 @@ begin
         wait until falling_edge(scl);
         sda <= 'Z';
     --read pointer
-        sda <= sda_i;
+        --sda <= sda_i;
         s_shift_enable_read <= '1';
         wait until read_done = '1';
         s_shift_enable_read <= '0';
@@ -72,7 +73,7 @@ begin
         sda <= 'Z';
 --Send:
     --wait for start
-        sda <= sda_i;
+        --sda <= sda_i;
         wait until scl = '1' and falling_edge(sda);
         s_data_to_write <= X"DA";
     --read address
@@ -85,7 +86,7 @@ begin
         wait until falling_edge(scl);
         sda <= 'Z';
     --send msb data
-        sda <= sda_o;
+        --sda <= sda_o;
         s_shift_enable_write <= '1';
         wait until send_done = '1';
     --wait for ack

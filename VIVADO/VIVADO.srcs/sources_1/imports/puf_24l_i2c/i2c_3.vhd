@@ -21,7 +21,7 @@ architecture rtl of i2c_3 is
     signal scl_rising, scl_falling : std_logic;
     
     signal s_shift_enable_write, send_done, s_shift_enable_read, read_done, received_msb  : std_logic;
-    signal s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
+    signal s_next_data_to_write, s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
                         
     constant tmp3_addr_read : std_logic_vector(7 downto 0) := "10010000";
     constant tmp3_addr_write : std_logic_vector(7 downto 0) := "10010001";
@@ -54,7 +54,8 @@ begin
     tx_reg: entity work.tx_shift_register(rtl)
     generic map(8)
     port map(
-    clk => scl,
+    clk => clk,
+    scl => scl,
     rst => rst,
     shift_enable => s_shift_enable_write,
     parallel_data => s_data_to_write,
@@ -100,16 +101,17 @@ begin
             s_shift_enable_write <= '0';
             s_shift_enable_read <= '0';
             received_msb <= '0';
-            sda <= 'H';
+            sda <= 'W';
             s_gen_start <= '0';
-            s_data_to_write <= X"00";
+            s_next_data_to_write <= s_data_to_write;
             next_state <= IDLE;
-            next_rom_index <= 0;
-            next_edge_counter <= 0;
+            next_rom_index <= rom_index;
+            next_edge_counter <= edge_counter;
             case (current_state) is
                 when IDLE =>
                     if btn = '1' then
                         next_state <= START;
+                        s_next_data_to_write <= a_rom(rom_index);
                     else
                         next_state <= IDLE;
                     end if;
@@ -117,27 +119,23 @@ begin
                     sda <= '0';
                     s_gen_start <= '1';
                     next_state <= WRITE_DATA;
-                    s_data_to_write <= a_rom(rom_index);
                 when WRITE_DATA =>
                     s_shift_enable_write <= '1';
                     if send_done = '1' then
                         next_state <= CHECK_ACK;
+                        next_rom_index <= rom_index + 1;
+                    else
+                        next_state <= WRITE_DATA;
                     end if;
-                    next_rom_index <= rom_index + 1;
                     next_edge_counter <= 0;
                 when CHECK_ACK =>
                     next_state <= CHECK_ACK;
-                    if scl_falling = '1' then
-                        next_edge_counter <= edge_counter + 1;
-                    end if;
 
-                    if edge_counter = 2 then
-                        if rom_index = 2 then
-                            next_state <= RECEIVE_TMP;
-                            next_rom_index <= 0;
-                        else
-                            next_state <= WRITE_DATA;
-                        end if;
+                    if rom_index = 2 and scl_falling = '1' then
+                        next_state <= RECEIVE_TMP;
+                        next_rom_index <= 0;
+                    elsif scl_falling = '1' then
+                        next_state <= WRITE_DATA;
                     end if;
                 when RECEIVE_TMP =>
                     s_shift_enable_read <= '1';
@@ -177,10 +175,12 @@ begin
             current_state <= IDLE;
             edge_counter <= 0;
             rom_index <= 0;
+            s_data_to_write <= X"00";
         elsif rising_edge(clk) then
             current_state <= next_state;
             edge_counter <= next_edge_counter;
             rom_index <= next_rom_index;
+            s_data_to_write <= s_next_data_to_write;
         end if;
    end process;
 

@@ -39,8 +39,8 @@ begin
     process(all) is
     begin
         if shift_enable = '1' then
-            s_next_data <= to_stdlogicvector(to_bitvector(s_data) srl 1);
-            s_next_data(data_width-1) <= serial_data;
+            s_next_data <= to_stdlogicvector(to_bitvector(s_data) sll 1);
+            s_next_data(0) <= serial_data;
         else
             s_next_data <= s_data;
         end if;

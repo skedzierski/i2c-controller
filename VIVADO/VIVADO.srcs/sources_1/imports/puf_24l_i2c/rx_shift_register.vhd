@@ -24,7 +24,7 @@ begin
         port map(
             clk => clk,
             rst => shift_enable,
-            preload => std_logic_vector(to_unsigned(data_width, 8)),
+            preload => std_logic_vector(to_unsigned(data_width-1, 8)),
             o_cnt => counter_irq
         );
     

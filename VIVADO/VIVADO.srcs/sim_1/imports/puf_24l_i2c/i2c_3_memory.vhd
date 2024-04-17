@@ -44,46 +44,41 @@ begin
     );
     
     process is begin
-    sda <= 'Z';
+        sda <= 'Z';
         s_shift_enable_write <= '0';
         s_shift_enable_read <= '0';
         --sda <= sda_i;
     --wait for start
         wait until scl = '1' and falling_edge(sda);
+        wait until rising_edge(scl);
     --read address
         s_shift_enable_read <= '1';
         wait until read_done = '1';
         s_shift_enable_read <= '0';
     --send ack
-        s_shift_enable_read <= '0';
-        wait until rising_edge(scl);
         sda <= '0';
-        wait until falling_edge(scl);
+        wait until rising_edge(scl);
         sda <= 'Z';
     --read pointer
-        --sda <= sda_i;
         s_shift_enable_read <= '1';
         wait until read_done = '1';
         s_shift_enable_read <= '0';
     --send ack
-        s_shift_enable_read <= '0';
-        wait until rising_edge(scl);
         sda <= '0';
-        wait until falling_edge(scl);
+        wait until rising_edge(scl);
         sda <= 'Z';
 --Send:
     --wait for start
-        --sda <= sda_i;
         wait until scl = '1' and falling_edge(sda);
+        wait until rising_edge(scl);
         s_data_to_write <= X"DA";
     --read address
         s_shift_enable_read <= '1';
         wait until read_done = '1';
         s_shift_enable_read <= '0';
     --send ack
-        wait until rising_edge(scl);
         sda <= '0';
-        wait until falling_edge(scl);
+        wait until rising_edge(scl);
         sda <= 'Z';
     --send msb data
         --sda <= sda_o;
@@ -93,12 +88,14 @@ begin
         s_shift_enable_write <= '0';
         s_data_to_write <= X"FC";
         wait until falling_edge(scl);
+        wait until rising_edge(scl);
     --send lsb data
         s_shift_enable_write <= '1';
         wait until send_done = '1';
     --wait for nack
         s_shift_enable_write <= '0';
         wait until falling_edge(scl);
+        wait until rising_edge(scl);
     --goto send
 
     end process;

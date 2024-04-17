@@ -20,7 +20,7 @@ architecture rtl of i2c_3 is
     signal scl_state : SCL_STATE;
     signal scl_rising, scl_falling : std_logic;
     
-    signal s_shift_enable_write, send_done, s_shift_enable_read, read_done, received_msb, next_received_msb  : std_logic;
+    signal s_shift_enable_write, send_done, s_shift_enable_read, read_done, received_msb, next_received_msb, scl_was_falling, next_scl_was_falling  : std_logic;
     signal s_next_data_to_write, s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
                         
     constant tmp3_addr_read : std_logic_vector(7 downto 0) := "10010000";
@@ -107,6 +107,7 @@ begin
             s_next_data_to_write <= a_rom(rom_index);
             next_rom_index <= rom_index;
             next_edge_counter <= edge_counter;
+            next_scl_was_falling <= scl_was_falling;
             case (current_state) is
                 when IDLE =>
                     if btn = '1' then
@@ -117,7 +118,15 @@ begin
                 when START =>
                     sda <= '0';
                     s_gen_start <= '1';
-                    next_state <= WRITE_DATA;
+                    if scl_falling = '1' then
+                        next_scl_was_falling <= '1';
+                    end if;
+                    if scl_rising = '1' and scl_was_falling = '1' then
+                        next_state <= WRITE_DATA;
+                        next_scl_was_falling <= '0';
+                    else 
+                        next_state <= START;
+                    end if;
                 when WRITE_DATA =>
                     s_shift_enable_write <= '1';
                     if send_done = '1' then
@@ -129,12 +138,19 @@ begin
                     next_edge_counter <= 0;
                 when CHECK_ACK =>
                     next_state <= CHECK_ACK;
-
-                    if rom_index = 3 and scl_falling = '1' then
+                    if scl_falling = '1' then
+                        next_scl_was_falling <= '1';
+                    end if;
+                    if rom_index = 3 and scl_rising = '1' and scl_was_falling = '1' then
                         next_state <= RECEIVE_TMP;
                         next_rom_index <= 0;
-                    elsif scl_falling = '1' then
+                        next_scl_was_falling <= '0';
+                    elsif rom_index = 2 and scl_rising = '1' and scl_was_falling = '1' then
+                        next_state <= START;
+                        next_scl_was_falling <= '0';
+                    elsif scl_rising = '1' and scl_was_falling = '1' then
                         next_state <= WRITE_DATA;
+                        next_scl_was_falling <= '0';
                     end if;
                 when RECEIVE_TMP =>
                     s_shift_enable_read <= '1';
@@ -149,20 +165,26 @@ begin
                     end if;
                 when SEND_ACK =>
                     next_state <= SEND_ACK;
-                    if scl_rising = '1' then
-                        sda <= '0';
+                    if scl_falling = '1' then
+                        next_scl_was_falling <= '1';
                     end if;
-                    if scl_falling = '1' then 
+                    --if scl_rising = '1' then
+                        sda <= '0';
+                    --end if;
+                    if scl_rising = '1' and scl_was_falling = '1' then 
                         next_state <= RECEIVE_TMP;
                         next_received_msb <= '1';
+                        next_scl_was_falling <= '0';
                     end if;
                 when SEND_NACK =>
-                next_received_msb <= '0';
-                    if scl_rising = '1' then
-                        sda <= '1';
-                    end if;
+                    next_state <= SEND_NACK;
+                    next_received_msb <= '0';
                     if scl_falling = '1' then
+                        next_scl_was_falling <= '1';
+                    end if;
+                    if scl_rising = '1' and scl_was_falling = '1' then
                         next_state <= START;
+                        next_scl_was_falling <= '0';
                     end if;
                 when STOP => null;
             end case;
@@ -178,12 +200,14 @@ begin
             rom_index <= 0;
             received_msb <= '0';
             s_data_to_write <= X"00";
+            scl_was_falling <= '0';
         elsif rising_edge(clk) then
             current_state <= next_state;
             received_msb <= next_received_msb;
             edge_counter <= next_edge_counter;
             rom_index <= next_rom_index;
             s_data_to_write <= s_next_data_to_write;
+            scl_was_falling <= next_scl_was_falling;
         end if;
    end process;
 

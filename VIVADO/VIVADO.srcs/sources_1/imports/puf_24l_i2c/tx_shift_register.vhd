@@ -20,7 +20,7 @@ architecture rtl of tx_shift_register is
     signal counter_irq: std_logic;
     signal s_clk: std_logic;
 begin
-    serial_data <= s_data(data_width-1);
+    --serial_data <= s_data(data_width-1);
 
     counter: entity work.generic_counter(rtl)
         generic map(8)
@@ -42,9 +42,11 @@ begin
     process(clk, rst, shift_enable, counter_irq, s_data) is
     begin
         if shift_enable = '1' then
+            serial_data <= s_data(data_width-1);
             s_next_data <= to_stdlogicvector(to_bitvector(s_data) sll 1);
             s_clk <= scl;
         else
+            serial_data <= 'Z';
             s_next_data <= parallel_data;
             s_clk <= clk;
         end if;

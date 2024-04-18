@@ -34,7 +34,7 @@ begin
         gen_start <= '1';
         wait for 10 ns;
         rst <= '1';
-        wait for 50 us;
+        wait for 1 ms;
         gen_start <= '0';
         gen_stop <= '1';
         wait for 50 us;

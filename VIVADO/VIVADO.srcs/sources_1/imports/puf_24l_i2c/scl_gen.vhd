@@ -23,31 +23,41 @@ architecture rtl of scl_gen is
     signal rep_start: std_logic;
     signal counter_reset: std_logic;
     signal overflow_500, overflow_250: std_logic;
+    signal clk200khz: std_logic;
 begin
     
     rep_start <= '0';
     o_state <= CURRENT_STATE;
     count_500: entity work.generic_counter(rtl)
-        generic map(counter_width => 16)
+        generic map(counter_width => 8)
         port map(
             clk => fpga_clk,
             rst => counter_reset,
-            preload => X"01F4", -- 500 decimal
+            preload => X"FA", -- 500 decimal
             o_cnt => overflow_500
         );
 
     count_250: entity work.generic_counter(rtl)
-        generic map(counter_width => 16)
+        generic map(counter_width => 8)
         port map(
             clk => fpga_clk,
             rst => counter_reset,
-            preload => X"00FA", -- 250 decimal
+            preload => X"7D", -- 250 decimal
             o_cnt => overflow_250
         );
+    
+    
+    clkgen_0: entity work.clkgen(arch)
+    port map(
+        clk200khz => clk200khz,
+        reset => rst,
+        shifted_100khz => o_scl
+    );
+    
     process(fpga_clk, rst, gen_start, gen_stop, CURRENT_STATE, overflow_500, overflow_250, rep_start) is
     begin
         counter_reset <= '1';
-        o_scl <= '1';
+        clk200khz <= '1';
         NEXT_STATE <= IDLE;
         case CURRENT_STATE is
             when IDLE =>
@@ -71,12 +81,12 @@ begin
                 end if;
 
             when SCL_LOW_EDGE =>
-                o_scl <= '0';
+                clk200khz <= '0';
                 --clk_cnt <= 0;
                 NEXT_STATE <= SCL_LOW;
 
             when SCL_LOW =>
-                o_scl <= '0';
+                clk200khz <= '0';
                 if(overflow_500 = '1') then
                     NEXT_STATE <= SCL_HI_EDGE;
                 else 
@@ -84,7 +94,7 @@ begin
                 end if;
 
             when SCL_HI_EDGE =>
-                o_scl <= '1';
+                clk200khz <= '1';
                 --clk_cnt <= 0;
                 NEXT_STATE <= SCL_HI;
 

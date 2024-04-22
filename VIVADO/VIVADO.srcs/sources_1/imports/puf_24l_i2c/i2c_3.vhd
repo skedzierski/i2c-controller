@@ -14,7 +14,8 @@ entity i2c_3 is
 end entity;
 
 architecture rtl of i2c_3 is
-    signal s_gen_start, s_gen_stop: std_logic;
+    signal s_gen_start, s_gen_stop, s_clk100khz, s_clk200khz : std_logic;
+    signal clk_200khz_rising, clk_200khz_falling, next_sda : std_logic;
     type T_STATE is (IDLE, START, WRITE_DATA, CHECK_ACK, RECEIVE_TMP, SEND_ACK, SEND_NACK, STOP);
     signal current_state, next_state: T_STATE;
     signal scl_state : SCL_STATE;
@@ -39,6 +40,8 @@ begin
     gen_start => s_gen_start,
     gen_stop => s_gen_stop,
     o_scl => scl,
+    clk100khz => s_clk100khz,
+    o_clk200khz => s_clk200khz,
     o_state => scl_state
     );
 
@@ -51,11 +54,20 @@ begin
         o_falling_edge => scl_falling
     );
 
+    clk200khz_detector: entity work.edge_detector(rtl)
+    port map(
+        clk => clk,
+        rst => rst,
+        sig => s_clk200khz,
+        o_rising_edge => clk_200khz_rising,
+        o_falling_edge => clk_200khz_falling
+    );
+
     tx_reg: entity work.tx_shift_register(rtl)
     generic map(8)
     port map(
     clk => clk,
-    scl => scl,
+    scl => s_clk100khz,
     rst => rst,
     shift_enable => s_shift_enable_write,
     parallel_data => s_data_to_write,
@@ -108,6 +120,7 @@ begin
             next_rom_index <= rom_index;
             next_edge_counter <= edge_counter;
             next_scl_was_falling <= scl_was_falling;
+            next_sda <= sda;
             case (current_state) is
                 when IDLE =>
                     if btn = '1' then
@@ -116,15 +129,17 @@ begin
                         next_state <= IDLE;
                     end if;
                 when START =>
-                    sda <= '0';
                     s_gen_start <= '1';
-                    if scl_falling = '1' then
-                        next_scl_was_falling <= '1';
-                    end if;
-                    if scl_rising = '1' and scl_was_falling = '1' then
+                    sda <= next_sda;
+                    if scl = '1' and clk_200khz_falling = '1' then
+                        next_sda <= '0';
+                        next_state <= START;
+                    elsif scl = '0' and clk_200khz_falling = '1' then
+                        next_sda <= '1';
+                        next_state <= START;
+                    elsif scl = '1' and clk_200khz_rising = '1' then
                         next_state <= WRITE_DATA;
-                        next_scl_was_falling <= '0';
-                    else 
+                    else
                         next_state <= START;
                     end if;
                 when WRITE_DATA =>

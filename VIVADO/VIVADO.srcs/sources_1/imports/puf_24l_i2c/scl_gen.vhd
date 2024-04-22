@@ -12,6 +12,8 @@ port(
     gen_start: in std_logic;
     gen_stop: in std_logic;
     o_scl: out std_logic;
+    clk100khz: out std_logic;
+    o_clk200khz: out std_logic;
     o_state: out SCL_STATE
 );
 
@@ -28,6 +30,7 @@ begin
     
     rep_start <= '0';
     o_state <= CURRENT_STATE;
+    o_clk200khz <= clk200khz;
     count_500: entity work.generic_counter(rtl)
         generic map(counter_width => 8)
         port map(
@@ -51,7 +54,8 @@ begin
     port map(
         clk200khz => clk200khz,
         reset => rst,
-        shifted_100khz => o_scl
+        shifted_100khz => o_scl,
+        clk100khz => clk100khz
     );
     
     process(fpga_clk, rst, gen_start, gen_stop, CURRENT_STATE, overflow_500, overflow_250, rep_start) is
@@ -99,6 +103,7 @@ begin
                 NEXT_STATE <= SCL_HI;
 
             when SCL_HI =>
+                clk200khz <= '1';
                 if(overflow_500 = '1') then
                     NEXT_STATE <= SCL_LOW_EDGE;
                 elsif (rep_start = '1' AND overflow_250 = '1') then

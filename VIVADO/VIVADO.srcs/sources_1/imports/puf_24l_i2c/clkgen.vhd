@@ -18,6 +18,7 @@ entity clkgen is
     begin
       if (reset = '0') then
         int1 <= '0';
+        clk100khz <= '1';
       elsif (clk200khz = '1' and clk200khz'event) then
         int1 <= not int1;
       end if;
@@ -28,9 +29,10 @@ entity clkgen is
     begin
       if (reset = '0') then
         int2 <= '0';
+        shifted_100khz <= '1';
       elsif (clk200khz = '0' and clk200khz'event) then
         int2 <= not int2;
       end if;
-      shifted_100khz <= int2;
+      shifted_100khz <= not int2;
     end process;
   end architecture;

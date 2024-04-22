@@ -50,6 +50,9 @@ begin
             s_next_data <= parallel_data;
             s_clk <= clk;
         end if;
+        if counter_irq = '1' then
+            serial_data <= 'Z';
+        end if;
     end process;
     
     process(s_clk, rst) is

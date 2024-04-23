@@ -32,7 +32,7 @@ begin
     o_state <= CURRENT_STATE;
     o_clk200khz <= clk200khz;
     count_500: entity work.generic_counter(rtl)
-        generic map(counter_width => 8)
+        generic map(counter_width => 8, edge_select => POS)
         port map(
             clk => fpga_clk,
             rst => counter_reset,
@@ -41,7 +41,7 @@ begin
         );
 
     count_250: entity work.generic_counter(rtl)
-        generic map(counter_width => 8)
+        generic map(counter_width => 8, edge_select => POS)
         port map(
             clk => fpga_clk,
             rst => counter_reset,

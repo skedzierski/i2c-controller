@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.i2c_pkg.edge;
 
 entity tx_shift_register is
 generic (data_width : natural);
@@ -23,7 +24,7 @@ begin
     --serial_data <= s_data(data_width-1);
 
     counter: entity work.generic_counter(rtl)
-        generic map(8)
+        generic map(8, POS)
         port map(
             clk => scl,
             rst => shift_enable,

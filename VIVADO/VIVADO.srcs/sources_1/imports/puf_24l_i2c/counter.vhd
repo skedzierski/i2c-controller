@@ -1,10 +1,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.numeric_std.all; 
+use work.i2c_pkg.all;
 
 entity generic_counter is
 generic(
-    counter_width: natural
+    counter_width: natural;
+    edge_select: edge
 );
 
 port(
@@ -20,11 +22,18 @@ architecture rtl of generic_counter is
     signal current_val : std_logic_vector(counter_width-1 downto 0);
 begin
     process(clk, rst) is
+        variable edge_as_logic : std_logic;
     begin
+        if edge_select = POS then
+            edge_as_logic := '1';
+        else
+            edge_as_logic := '0';
+        end if;
+
         if (rst = '0') then
             current_val <= (others => '0'); -- natural
             o_cnt <= '0';
-        elsif (clk'event and clk = '1') then
+        elsif clk'event and clk = edge_as_logic then
             current_val <= std_logic_vector(unsigned(current_val) + 1);
             if (current_val = preload) then
                 o_cnt <= '1';

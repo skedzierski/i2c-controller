@@ -25,7 +25,8 @@ receive_data_reg: entity work.tx_shift_register(rtl)
         shift_enable =>  s_shift_enable,
         parallel_data => s_data,
         irq => s_irq,
-        serial_data => sda
+        serial_data => sda,
+        scl => '0'
     );
 
 process is

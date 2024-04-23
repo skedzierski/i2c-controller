@@ -31,6 +31,7 @@ architecture rtl of i2c_3 is
     constant a_rom : rom := (tmp3_addr_write, tmp3_ta_pointer, tmp3_addr_read, "ZZZZZZZZ");
     signal rom_index, next_rom_index : natural;
     signal edge_counter, next_edge_counter : natural;
+    signal s_clk100khz_falling, clk100khz_falling, next_clk100khz_falling, clk100khz_rising : std_logic;
 begin
 
     scl_gen: entity work.scl_gen(rtl)
@@ -54,6 +55,15 @@ begin
         o_falling_edge => scl_falling
     );
 
+    clk100khz_detector: entity work.edge_detector(rtl)
+    port map(
+        clk => clk,
+        rst => rst,
+        sig => s_clk100khz,
+        o_falling_edge => s_clk100khz_falling,
+        o_rising_edge => clk100khz_rising
+    );
+    
     clk200khz_detector: entity work.edge_detector(rtl)
     port map(
         clk => clk,
@@ -121,6 +131,7 @@ begin
             next_edge_counter <= edge_counter;
             next_scl_was_falling <= scl_was_falling;
             next_sda <= sda;
+            next_clk100khz_falling <= clk100khz_falling;
             case (current_state) is
                 when IDLE =>
                     if btn = '1' then
@@ -152,20 +163,24 @@ begin
                     end if;
                     next_edge_counter <= 0;
                 when CHECK_ACK =>
+                    sda <= '0';
                     next_state <= CHECK_ACK;
-                    if scl_falling = '1' then
-                        next_scl_was_falling <= '1';
+                    if s_clk100khz_falling = '1' then
+                        next_clk100khz_falling <= '1';
                     end if;
-                    if rom_index = 3 and scl_rising = '1' and scl_was_falling = '1' then
+                    if rom_index = 3 and clk100khz_falling = '1' and clk100khz_rising = '1' then
                         next_state <= RECEIVE_TMP;
                         next_rom_index <= 0;
                         next_scl_was_falling <= '0';
-                    elsif rom_index = 2 and scl_rising = '1' and scl_was_falling = '1' then
+                        next_clk100khz_falling <= '0';
+                    elsif rom_index = 2 and clk100khz_falling = '1' and clk100khz_rising = '1' then
                         next_state <= START;
                         next_scl_was_falling <= '0';
-                    elsif scl_rising = '1' and scl_was_falling = '1' then
+                        next_clk100khz_falling <= '0';
+                    elsif clk100khz_falling = '1' and clk100khz_rising = '1' then
                         next_state <= WRITE_DATA;
                         next_scl_was_falling <= '0';
+                        next_clk100khz_falling <= '0';
                     end if;
                 when RECEIVE_TMP =>
                     s_shift_enable_read <= '1';
@@ -216,6 +231,7 @@ begin
             received_msb <= '0';
             s_data_to_write <= X"00";
             scl_was_falling <= '0';
+            clk100khz_falling <= '0';
         elsif rising_edge(clk) then
             current_state <= next_state;
             received_msb <= next_received_msb;
@@ -223,6 +239,7 @@ begin
             rom_index <= next_rom_index;
             s_data_to_write <= s_next_data_to_write;
             scl_was_falling <= next_scl_was_falling;
+            clk100khz_falling <= next_clk100khz_falling;
         end if;
    end process;
 

@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.i2c_pkg.edge;
 
 entity rx_shift_register is
 generic (data_width : natural);
@@ -20,7 +21,7 @@ architecture rtl of rx_shift_register is
 begin
     parallel_data <= s_data;
     counter: entity work.generic_counter(rtl)
-        generic map(8)
+        generic map(8, NEG)
         port map(
             clk => clk,
             rst => shift_enable,

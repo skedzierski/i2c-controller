@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use IEEE.numeric_std.all; 
-
 use work.i2c_pkg.all;
 
 entity scl_gen is
@@ -32,7 +31,7 @@ begin
     o_state <= CURRENT_STATE;
     o_clk200khz <= clk200khz;
     count_500: entity work.generic_counter(rtl)
-        generic map(counter_width => 8)
+        generic map(counter_width => 8, edge_sel => POS)
         port map(
             clk => fpga_clk,
             rst => counter_reset,
@@ -41,7 +40,7 @@ begin
         );
 
     count_250: entity work.generic_counter(rtl)
-        generic map(counter_width => 8)
+        generic map(counter_width => 8, edge_sel => POS)
         port map(
             clk => fpga_clk,
             rst => counter_reset,

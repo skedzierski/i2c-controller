@@ -15,6 +15,13 @@ architecture sim of i2c_3_memory is
     signal s_shift_enable_write, send_done, s_shift_enable_read, read_done, sda_i, sda_o  : std_logic;
     signal s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
 
+    procedure send_ack(signal sda: out std_logic) is
+    begin
+        sda <= '0';
+        wait until rising_edge(scl);
+        sda <= 'Z';
+    end procedure;
+
 begin
     rx: entity work.rx_shift_register(rtl)
     generic map (
@@ -56,17 +63,13 @@ begin
         wait until read_done = '1';
         s_shift_enable_read <= '0';
     --send ack
-        sda <= '0';
-        wait until rising_edge(scl);
-        sda <= 'Z';
+        send_ack(sda);
     --read pointer
         s_shift_enable_read <= '1';
         wait until read_done = '1';
         s_shift_enable_read <= '0';
     --send ack
-        sda <= '0';
-        wait until rising_edge(scl);
-        sda <= 'Z';
+        send_ack(sda);
 --Send:
     --wait for start
         wait until scl = '1' and falling_edge(sda);
@@ -77,9 +80,7 @@ begin
         wait until read_done = '1';
         s_shift_enable_read <= '0';
     --send ack
-        sda <= '0';
-        wait until rising_edge(scl);
-        sda <= 'Z';
+        send_ack(sda);
     --send msb data
         --sda <= sda_o;
         s_shift_enable_write <= '1';

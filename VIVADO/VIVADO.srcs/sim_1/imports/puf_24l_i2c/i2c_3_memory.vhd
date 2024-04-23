@@ -17,9 +17,12 @@ architecture sim of i2c_3_memory is
 
     procedure send_ack(signal sda: out std_logic) is
     begin
+        wait for 2.5 us;
         sda <= '0';
         wait until rising_edge(scl);
         sda <= 'Z';
+        wait until falling_edge(scl);
+        wait for 2.5 us;
     end procedure;
 
 begin

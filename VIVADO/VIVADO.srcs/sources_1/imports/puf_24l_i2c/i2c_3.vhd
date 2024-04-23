@@ -113,7 +113,7 @@ begin
             s_shift_enable_write <= '0';
             s_shift_enable_read <= '0';
             next_received_msb <= received_msb;
-            sda <= 'H';
+            sda <= 'Z';
             s_gen_start <= '0';
             next_state <= IDLE;
             s_next_data_to_write <= a_rom(rom_index);
@@ -135,7 +135,7 @@ begin
                         next_sda <= '0';
                         next_state <= START;
                     elsif scl = '0' and clk_200khz_falling = '1' then
-                        next_sda <= '1';
+                        next_sda <= 'Z';
                         next_state <= START;
                     elsif scl = '1' and clk_200khz_rising = '1' then
                         next_state <= WRITE_DATA;

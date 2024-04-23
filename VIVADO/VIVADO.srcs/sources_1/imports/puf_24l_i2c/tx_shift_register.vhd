@@ -44,7 +44,11 @@ begin
     process(clk, rst, shift_enable, counter_irq, s_data) is
     begin
         if shift_enable = '1' then
-            serial_data <= s_data(data_width-1);
+            if s_data(data_width-1) = '1' then
+                serial_data <= 'Z';
+            else
+                serial_data <= '0';
+            end if;
             s_next_data <= to_stdlogicvector(to_bitvector(s_data) sll 1);
             s_clk <= scl;
         else

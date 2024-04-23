@@ -8,6 +8,9 @@ architecture sim of top is
     signal s_rst, s_clk, s_sda, s_scl, s_btn : std_logic;
 begin
 
+    s_sda <= 'H';
+    s_scl <= 'H';
+
     master: entity work.i2c_3(rtl)
     port map(
         scl => s_scl,

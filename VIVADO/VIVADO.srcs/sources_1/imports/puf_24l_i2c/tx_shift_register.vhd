@@ -11,6 +11,7 @@ port (
     scl: in std_logic;
     rst: in std_logic; -- active low
     shift_enable: in std_logic; --active high
+    oe : in std_logic; -- active high
     parallel_data: in std_logic_vector(data_width-1 downto 0);
     serial_data: out std_logic;
     irq: out std_logic
@@ -44,17 +45,21 @@ begin
     process(clk, rst, shift_enable, counter_irq, s_data) is
     begin
         if shift_enable = '1' then
+            s_next_data <= to_stdlogicvector(to_bitvector(s_data) sll 1);
+            s_clk <= scl;
+        else
+            s_next_data <= parallel_data;
+            s_clk <= clk;
+        end if;
+
+        if oe = '1' then
             if s_data(data_width-1) = '1' then
                 serial_data <= 'Z';
             else
                 serial_data <= '0';
             end if;
-            s_next_data <= to_stdlogicvector(to_bitvector(s_data) sll 1);
-            s_clk <= scl;
         else
             serial_data <= 'Z';
-            s_next_data <= parallel_data;
-            s_clk <= clk;
         end if;
     end process;
     

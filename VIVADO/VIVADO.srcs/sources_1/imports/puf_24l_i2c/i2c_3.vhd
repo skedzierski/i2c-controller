@@ -14,12 +14,13 @@ entity i2c_3 is
 end entity;
 
 architecture rtl of i2c_3 is
-    signal s_gen_start, s_gen_stop, s_clk100khz, s_clk200khz : std_logic;
+    signal s_gen_start, s_gen_stop, s_rep_start, s_clk100khz, s_clk200khz : std_logic;
     signal clk_200khz_rising, clk_200khz_falling, next_sda : std_logic;
     type T_STATE is (IDLE, START, WRITE_DATA, CHECK_ACK, RECEIVE_TMP, SEND_ACK, SEND_NACK, STOP);
     signal current_state, next_state: T_STATE;
     signal scl_state : SCL_STATE;
     signal scl_rising, scl_falling : std_logic;
+    signal s_oe : std_logic;
     
     signal s_shift_enable_write, send_done, s_shift_enable_read, read_done, received_msb, next_received_msb, scl_was_falling, next_scl_was_falling  : std_logic;
     signal s_next_data_to_write, s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
@@ -32,6 +33,7 @@ architecture rtl of i2c_3 is
     signal rom_index, next_rom_index : natural;
     signal edge_counter, next_edge_counter : natural;
     signal s_clk100khz_falling, clk100khz_falling, next_clk100khz_falling, clk100khz_rising : std_logic;
+    signal scl_was_rising, next_scl_was_rising, start_triggered, next_start_triggered : std_logic;
 begin
 
     scl_gen: entity work.scl_gen(rtl)
@@ -39,6 +41,7 @@ begin
     fpga_clk => clk,
     rst => rst,
     gen_start => s_gen_start,
+    rep_start => s_rep_start,
     gen_stop => s_gen_stop,
     o_scl => scl,
     clk100khz => s_clk100khz,
@@ -80,6 +83,7 @@ begin
     scl => s_clk100khz,
     rst => rst,
     shift_enable => s_shift_enable_write,
+    oe => s_oe,
     parallel_data => s_data_to_write,
     serial_data => sda,
     irq => send_done
@@ -88,7 +92,7 @@ begin
     rx_reg: entity work.rx_shift_register(rtl)
     generic map(8)
     port map(
-    clk => scl,
+    clk => s_clk100khz,
     rst => rst,
     shift_enable => s_shift_enable_read,
     parallel_data => s_data_to_read,
@@ -125,6 +129,9 @@ begin
             next_received_msb <= received_msb;
             sda <= 'Z';
             s_gen_start <= '0';
+            s_rep_start <= '0';
+            s_oe <= '0';
+            next_start_triggered <= start_triggered;
             next_state <= IDLE;
             s_next_data_to_write <= a_rom(rom_index);
             next_rom_index <= rom_index;
@@ -141,20 +148,19 @@ begin
                     end if;
                 when START =>
                     s_gen_start <= '1';
+                    s_rep_start <= '1';
+                    next_state <= START;
                     sda <= next_sda;
-                    if scl = '1' and clk_200khz_falling = '1' then
+                    if scl = '1' and s_clk100khz_falling = '1' and start_triggered = '0' then
                         next_sda <= '0';
-                        next_state <= START;
-                    elsif scl = '0' and clk_200khz_falling = '1' then
-                        next_sda <= 'Z';
-                        next_state <= START;
-                    elsif scl = '1' and clk_200khz_rising = '1' then
+                        next_start_triggered <= '1';
+                    elsif scl = '0' and clk100khz_rising = '1' and start_triggered = '1' then
                         next_state <= WRITE_DATA;
-                    else
-                        next_state <= START;
+                        next_start_triggered <= '0';
                     end if;
                 when WRITE_DATA =>
                     s_shift_enable_write <= '1';
+                    s_oe <= '1';
                     if send_done = '1' then
                         next_state <= CHECK_ACK;
                         next_rom_index <= rom_index + 1;
@@ -174,7 +180,10 @@ begin
                         next_scl_was_falling <= '0';
                         next_clk100khz_falling <= '0';
                     elsif rom_index = 2 and clk100khz_falling = '1' and clk100khz_rising = '1' then
+                        s_rep_start <= '1';
                         next_state <= START;
+                        next_sda <= 'Z';
+                        sda <= 'Z';
                         next_scl_was_falling <= '0';
                         next_clk100khz_falling <= '0';
                     elsif clk100khz_falling = '1' and clk100khz_rising = '1' then
@@ -198,10 +207,8 @@ begin
                     if scl_falling = '1' then
                         next_scl_was_falling <= '1';
                     end if;
-                    --if scl_rising = '1' then
-                        sda <= '0';
-                    --end if;
-                    if scl_rising = '1' and scl_was_falling = '1' then 
+                    sda <= '0';
+                    if scl_falling = '1' and scl_was_falling = '1' then 
                         next_state <= RECEIVE_TMP;
                         next_received_msb <= '1';
                         next_scl_was_falling <= '0';
@@ -231,7 +238,9 @@ begin
             received_msb <= '0';
             s_data_to_write <= X"00";
             scl_was_falling <= '0';
+            scl_was_rising <= '0';
             clk100khz_falling <= '0';
+            start_triggered <= '0';
         elsif rising_edge(clk) then
             current_state <= next_state;
             received_msb <= next_received_msb;
@@ -239,7 +248,9 @@ begin
             rom_index <= next_rom_index;
             s_data_to_write <= s_next_data_to_write;
             scl_was_falling <= next_scl_was_falling;
+            scl_was_rising <= next_scl_was_rising;
             clk100khz_falling <= next_clk100khz_falling;
+            start_triggered <= next_start_triggered;
         end if;
    end process;
 

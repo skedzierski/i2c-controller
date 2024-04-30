@@ -9,6 +9,7 @@ port(
     fpga_clk: in std_logic;
     rst: in std_logic;
     gen_start: in std_logic;
+    rep_start: in std_logic;
     gen_stop: in std_logic;
     o_scl: out std_logic;
     clk100khz: out std_logic;
@@ -21,13 +22,11 @@ end entity;
 architecture rtl of scl_gen is
     signal CURRENT_STATE : SCL_STATE := IDLE;
     signal NEXT_STATE: SCL_STATE;
-    signal rep_start: std_logic;
     signal counter_reset: std_logic;
     signal overflow_500, overflow_250: std_logic;
     signal clk200khz: std_logic;
 begin
     
-    rep_start <= '0';
     o_state <= CURRENT_STATE;
     o_clk200khz <= clk200khz;
     count_500: entity work.generic_counter(rtl)

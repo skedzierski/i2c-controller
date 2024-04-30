@@ -14,11 +14,10 @@ entity i2c_3 is
 end entity;
 
 architecture rtl of i2c_3 is
-    signal s_gen_start, s_gen_stop, s_rep_start, s_clk100khz, s_clk200khz : std_logic;
-    signal clk_200khz_rising, clk_200khz_falling, next_sda : std_logic;
+    signal s_gen_start, s_gen_stop, s_rep_start, s_clk100khz : std_logic;
+    signal next_sda, next_clk100khz_rising : std_logic;
     type T_STATE is (IDLE, START, WRITE_DATA, CHECK_ACK, RECEIVE_TMP, SEND_ACK, SEND_NACK, STOP);
     signal current_state, next_state: T_STATE;
-    signal scl_state : SCL_STATE;
     signal scl_rising, scl_falling : std_logic;
     signal s_oe : std_logic;
     
@@ -44,9 +43,7 @@ begin
     rep_start => s_rep_start,
     gen_stop => s_gen_stop,
     o_scl => scl,
-    clk100khz => s_clk100khz,
-    o_clk200khz => s_clk200khz,
-    o_state => scl_state
+    clk100khz => s_clk100khz
     );
 
     scl_edge_detector: entity work.edge_detector(rtl)
@@ -65,15 +62,6 @@ begin
         sig => s_clk100khz,
         o_falling_edge => s_clk100khz_falling,
         o_rising_edge => clk100khz_rising
-    );
-    
-    clk200khz_detector: entity work.edge_detector(rtl)
-    port map(
-        clk => clk,
-        rst => rst,
-        sig => s_clk200khz,
-        o_rising_edge => clk_200khz_rising,
-        o_falling_edge => clk_200khz_falling
     );
 
     tx_reg: entity work.tx_shift_register(rtl)
@@ -196,32 +184,40 @@ begin
                     if read_done = '1' then
                         if received_msb = '0' then
                             next_state <= SEND_ACK;
+                            next_received_msb <= '1';
                         else
                             next_state <= SEND_NACK;
+                            next_received_msb <= '0';
                         end if;
                     else
                         next_state <= RECEIVE_TMP;
                     end if;
                 when SEND_ACK =>
                     next_state <= SEND_ACK;
-                    if scl_falling = '1' then
-                        next_scl_was_falling <= '1';
+                    sda <= next_sda;
+                    if scl_rising = '1' then
+                        next_scl_was_rising <= '1';
                     end if;
-                    sda <= '0';
-                    if scl_falling = '1' and scl_was_falling = '1' then 
+                    if clk100khz_rising = '1' then
+                        next_sda <= '0';
+                    end if;
+                    if scl_rising = '1' then
+                        next_sda <= 'Z';
+                    end if;
+                    if clk100khz_rising = '1' and scl_was_rising = '1' then
                         next_state <= RECEIVE_TMP;
-                        next_received_msb <= '1';
-                        next_scl_was_falling <= '0';
+                        next_scl_was_rising <= '0';
                     end if;
                 when SEND_NACK =>
                     next_state <= SEND_NACK;
                     next_received_msb <= '0';
-                    if scl_falling = '1' then
-                        next_scl_was_falling <= '1';
+                    if s_clk100khz_falling = '1' then
+                        next_clk100khz_falling <= '1';
                     end if;
-                    if scl_rising = '1' and scl_was_falling = '1' then
+
+                    if s_clk100khz_falling = '1' and clk100khz_falling = '1' then
                         next_state <= START;
-                        next_scl_was_falling <= '0';
+                        next_clk100khz_falling <= '0';
                     end if;
                 when STOP => null;
             end case;

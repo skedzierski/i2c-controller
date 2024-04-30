@@ -12,9 +12,7 @@ port(
     rep_start: in std_logic;
     gen_stop: in std_logic;
     o_scl: out std_logic;
-    clk100khz: out std_logic;
-    o_clk200khz: out std_logic;
-    o_state: out SCL_STATE
+    clk100khz: out std_logic
 );
 
 end entity;
@@ -26,9 +24,6 @@ architecture rtl of scl_gen is
     signal overflow_500, overflow_250: std_logic;
     signal clk200khz: std_logic;
 begin
-    
-    o_state <= CURRENT_STATE;
-    o_clk200khz <= clk200khz;
     count_500: entity work.generic_counter(rtl)
         generic map(counter_width => 8, edge_sel => POS)
         port map(

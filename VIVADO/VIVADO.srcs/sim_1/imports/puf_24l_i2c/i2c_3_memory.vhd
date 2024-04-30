@@ -104,12 +104,14 @@ begin
     --wait for ack
         s_oe <= '0';
         s_shift_enable_write <= '0';
+        wait for 2.5 us;
+        sda <= '0';
         s_data_to_write <= X"EF";
-        wait until falling_edge(scl);
-        wait until rising_edge(scl);
+        wait for 7.5 us;
+        sda <= 'Z';
     --send lsb data
         s_oe <= '1';
-        wait for 5 us;
+        wait for 10 us;
         s_shift_enable_write <= '1';
         wait until send_done = '1';
     --wait for nack

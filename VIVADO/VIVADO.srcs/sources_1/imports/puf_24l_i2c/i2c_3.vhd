@@ -33,6 +33,7 @@ architecture rtl of i2c_3 is
     signal edge_counter, next_edge_counter : natural;
     signal s_clk100khz_falling, clk100khz_falling, next_clk100khz_falling, clk100khz_rising : std_logic;
     signal scl_was_rising, next_scl_was_rising, start_triggered, next_start_triggered : std_logic;
+    signal stop_triggered, next_stop_triggered : std_logic;
 begin
 
     scl_gen: entity work.scl_gen(rtl)
@@ -120,6 +121,7 @@ begin
             s_rep_start <= '0';
             s_oe <= '0';
             next_start_triggered <= start_triggered;
+            next_stop_triggered <= stop_triggered;
             next_state <= IDLE;
             s_next_data_to_write <= a_rom(rom_index);
             next_rom_index <= rom_index;
@@ -220,10 +222,32 @@ begin
                     end if;
 
                     if scl_falling = '1' and scl_was_falling = '1' then
-                        next_state <= START;
+                        next_state <= STOP;
                         next_clk100khz_falling <= '0';
+                        next_scl_was_falling <= '0';
                     end if;
-                when STOP => null;
+                when STOP => 
+                    sda <= next_sda;
+                    next_state <= STOP;
+                    if scl_falling = '1' then
+                        next_scl_was_falling <= '1';
+                    end if;
+                    
+                    if clk100khz_rising = '1' and stop_triggered = '0' then
+                        next_sda <= '0';
+                    end if;
+                    
+                    if s_clk100khz_falling = '1' then
+                        next_sda <= 'Z';
+                        next_stop_triggered <= '1';
+                    end if;
+
+                    if scl_falling = '1' and scl_was_falling = '1' then
+                        next_state <= START;
+                        next_scl_was_falling <= '0';
+                        next_stop_triggered <= '0';
+                    end if;
+
             end case;
             
             
@@ -241,6 +265,7 @@ begin
             scl_was_rising <= '0';
             clk100khz_falling <= '0';
             start_triggered <= '0';
+            stop_triggered <= '0';
         elsif rising_edge(clk) then
             current_state <= next_state;
             received_msb <= next_received_msb;
@@ -251,6 +276,7 @@ begin
             scl_was_rising <= next_scl_was_rising;
             clk100khz_falling <= next_clk100khz_falling;
             start_triggered <= next_start_triggered;
+            stop_triggered <= next_stop_triggered;
         end if;
    end process;
 

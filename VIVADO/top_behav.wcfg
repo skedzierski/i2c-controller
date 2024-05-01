@@ -11,26 +11,26 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="280.544970 us"></ZoomStartTime>
-      <ZoomEndTime time="360.344971 us"></ZoomEndTime>
-      <Cursor1Time time="299.750000 us"></Cursor1Time>
+      <ZoomStartTime time="454.250000 us"></ZoomStartTime>
+      <ZoomEndTime time="510.350001 us"></ZoomEndTime>
+      <Cursor1Time time="501.000000 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="156"></NameColumnWidth>
+      <NameColumnWidth column_width="62"></NameColumnWidth>
       <ValueColumnWidth column_width="59"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="7" />
+   <WVObjectSize size="8" />
    <wvobject type="logic" fp_name="/top/s_scl">
       <obj_property name="ElementShortName">s_scl</obj_property>
       <obj_property name="ObjectShortName">s_scl</obj_property>
    </wvobject>
-   <wvobject type="logic" fp_name="/top/master/s_clk100khz">
-      <obj_property name="ElementShortName">s_clk100khz</obj_property>
-      <obj_property name="ObjectShortName">s_clk100khz</obj_property>
-   </wvobject>
    <wvobject type="logic" fp_name="/top/s_sda">
       <obj_property name="ElementShortName">s_sda</obj_property>
       <obj_property name="ObjectShortName">s_sda</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/top/master/s_clk100khz">
+      <obj_property name="ElementShortName">s_clk100khz</obj_property>
+      <obj_property name="ObjectShortName">s_clk100khz</obj_property>
    </wvobject>
    <wvobject type="other" fp_name="/top/master/current_state">
       <obj_property name="ElementShortName">current_state</obj_property>
@@ -52,5 +52,9 @@
    <wvobject type="logic" fp_name="/top/slave/s_shift_enable_write">
       <obj_property name="ElementShortName">s_shift_enable_write</obj_property>
       <obj_property name="ObjectShortName">s_shift_enable_write</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/top/slave/s_oe">
+      <obj_property name="ElementShortName">s_oe</obj_property>
+      <obj_property name="ObjectShortName">s_oe</obj_property>
    </wvobject>
 </wave_config>

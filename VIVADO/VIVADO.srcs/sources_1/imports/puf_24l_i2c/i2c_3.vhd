@@ -215,7 +215,11 @@ begin
                         next_clk100khz_falling <= '1';
                     end if;
 
-                    if s_clk100khz_falling = '1' and clk100khz_falling = '1' then
+                    if scl_falling = '1' then
+                        next_scl_was_falling <= '1';
+                    end if;
+
+                    if scl_falling = '1' and scl_was_falling = '1' then
                         next_state <= START;
                         next_clk100khz_falling <= '0';
                     end if;
@@ -226,7 +230,7 @@ begin
         
         end process;
 
-   state_register: process(clk, rst) is begin
+   registers: process(clk, rst) is begin
         if rst = '0' then
             current_state <= IDLE;
             edge_counter <= 0;

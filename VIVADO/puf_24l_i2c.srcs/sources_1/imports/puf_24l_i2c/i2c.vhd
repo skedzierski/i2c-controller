@@ -1,15 +1,11 @@
 library ieee;
 use ieee.std_logic_1164.all;
-
 use work.i2c_pkg.all;
 
 entity i2c is
     port(
-        scl: inout std_logic;
-        sda: inout std_logic;
         clk: in std_logic;
-        btn: in std_logic;
-        rst: in std_logic
+        ja: inout std_logic_vector(1 downto 0)
     );
 end entity;
 
@@ -23,11 +19,92 @@ architecture rtl of i2c is
                         
     signal s_clk100khz_falling, s_clk100khz_rising : std_logic;
 
-begin
+    signal scl, sda, sda_fsm, sda_tx : std_logic;
+    signal clk_100mhz : std_logic;
+    signal rst : std_logic;
+    
+    signal btn, resetn, next_ja0, next_ja1 : std_logic;
+    signal ctrl : std_logic_vector(1 downto 0);
+    
+    component clk_wiz_0
+    port
+     (-- Clock in ports
+      -- Clock out ports
+      clk          : out    std_logic;
+      -- Status and control signals
+      resetn             : in     std_logic;
+      locked            : out    std_logic;
+      clk_in1           : in     std_logic
+     );
+    end component;
+    
+    COMPONENT ila_0
 
+    PORT (
+        clk : IN STD_LOGIC;    
+        probe0 : IN STD_LOGIC_VECTOR(1 DOWNTO 0)
+    );
+    END COMPONENT  ;
+    
+    COMPONENT vio_0
+    PORT (
+    clk : IN STD_LOGIC;
+    probe_out0 : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
+    );
+    END COMPONENT;
+
+begin
+    scl <= next_ja1;
+    sda <= next_ja0;
+
+    btn <= ctrl(0);
+    resetn <= ctrl(1);
+
+    process(s_tx_oe, clk_100mhz, sda_tx, sda_fsm) is begin
+        if s_tx_oe = '1' then
+            next_ja0 <= sda_tx;
+        else
+            next_ja0 <= sda_fsm;
+        end if;
+    end process;
+    
+    process(clk_100mhz, rst) is begin
+        if rising_edge(clk_100mhz) then
+            ja(0) <= next_ja0;
+            ja(1) <= next_ja1;
+        end if;
+        if rst = '1' then
+            ja(0) <= 'Z';
+            ja(1) <= 'Z';
+        end if;
+    end process;
+    
+    ila : ila_0
+    PORT MAP (
+        clk => clk_100mhz,
+        probe0 => ja
+    );
+    
+    vio : vio_0
+    PORT MAP (
+    clk => clk_100mhz,
+    probe_out0 => ctrl
+    );
+        
+    system_clock : clk_wiz_0
+    port map ( 
+    -- Clock out ports  
+    clk => clk_100mhz,
+    -- Status and control signals                
+    resetn => resetn,
+    locked => rst,
+    -- Clock in ports
+    clk_in1 => clk
+    );
+    
     scl_gen: entity work.scl_gen(rtl)
     port map(
-    fpga_clk => clk,
+    fpga_clk => clk_100mhz,
     rst => rst,
     gen_start => s_gen_start,
     rep_start => s_rep_start,
@@ -38,7 +115,7 @@ begin
 
     scl_edge_detector: entity work.edge_detector(rtl)
     port map(
-        clk => clk,
+        clk => clk_100mhz,
         rst => rst,
         sig => scl,
         o_rising_edge => s_scl_rising,
@@ -47,7 +124,7 @@ begin
 
     clk100khz_detector: entity work.edge_detector(rtl)
     port map(
-        clk => clk,
+        clk => clk_100mhz,
         rst => rst,
         sig => s_clk100khz,
         o_falling_edge => s_clk100khz_falling,
@@ -57,13 +134,13 @@ begin
     tx_reg: entity work.tx_shift_register(rtl)
     generic map(8)
     port map(
-    clk => clk,
+    clk => clk_100mhz,
     scl => s_clk100khz,
     rst => rst,
     shift_enable => s_shift_enable_write,
     oe => s_tx_oe,
     parallel_data => s_data_to_write,
-    serial_data => sda,
+    serial_data => sda_tx,
     irq => s_send_done
     );
 
@@ -81,8 +158,8 @@ begin
     i2c_fsm: entity work.i2c_fsm(rtl)
     port map(
         scl => scl,
-        sda => sda,
-        clk => clk,
+        sda => sda_fsm,
+        clk => clk_100mhz,
         btn => btn,
         rst => rst,
         gen_start => s_gen_start,

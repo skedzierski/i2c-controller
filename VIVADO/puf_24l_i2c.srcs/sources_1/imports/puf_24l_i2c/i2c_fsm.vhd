@@ -72,7 +72,6 @@ is begin
     shift_enable_write <= '0';
     shift_enable_read <= '0';
     next_received_msb <= received_msb;
-    sda <= 'Z';
     gen_start <= '0';
     rep_start <= '0';
     tx_oe <= '0';
@@ -88,6 +87,7 @@ is begin
     next_clk100khz_falling <= s_clk100khz_falling;
     case (current_state) is
         when IDLE =>
+            next_sda <= 'Z';
             if btn = '1' then
                 next_state <= START;
             else
@@ -97,11 +97,11 @@ is begin
             gen_start <= '1';
             rep_start <= '1';
             next_state <= START;
-            sda <= next_sda;
             if scl = '1' and clk100khz_falling = '1' and start_triggered = '0' then
                 next_sda <= '0';
                 next_start_triggered <= '1';
             elsif scl = '0' and clk100khz_rising = '1' and start_triggered = '1' then
+                next_sda <= 'Z';
                 next_state <= WRITE_DATA;
                 next_start_triggered <= '0';
             end if;
@@ -116,7 +116,7 @@ is begin
             end if;
             next_edge_counter <= 0;
         when CHECK_ACK =>
-            sda <= '0';
+            next_sda <= '0';
             next_state <= CHECK_ACK;
             if clk100khz_falling = '1' then 
                 next_clk100khz_falling <= '1';
@@ -130,7 +130,6 @@ is begin
                 rep_start <= '1';
                 next_state <= START;
                 next_sda <= 'Z';
-                sda <= 'Z';
                 next_scl_was_falling <= '0';
                 next_clk100khz_falling <= '0';
             elsif s_clk100khz_falling = '1' and clk100khz_rising = '1' then
@@ -140,6 +139,7 @@ is begin
             end if;
         when RECEIVE_TMP =>
             shift_enable_read <= '1';
+            next_sda <= 'Z';
             if read_done = '1' then
                 if received_msb = '0' then
                     next_state <= SEND_ACK;
@@ -153,7 +153,6 @@ is begin
             end if;
         when SEND_ACK =>
             next_state <= SEND_ACK;
-            sda <= next_sda;
             if scl_rising = '1' then
                 next_scl_was_rising <= '1';
             end if;
@@ -184,7 +183,6 @@ is begin
                 next_scl_was_falling <= '0';
             end if;
         when STOP => 
-            sda <= next_sda;
             next_state <= STOP;
             if scl_falling = '1' then
                 next_scl_was_falling <= '1';
@@ -220,6 +218,7 @@ registers: process(clk, rst) is begin
             s_clk100khz_falling <= '0';
             start_triggered <= '0';
             stop_triggered <= '0';
+            sda <= '0';
         elsif rising_edge(clk) then
             current_state <= next_state;
             received_msb <= next_received_msb;
@@ -231,6 +230,7 @@ registers: process(clk, rst) is begin
             s_clk100khz_falling <= next_clk100khz_falling;
             start_triggered <= next_start_triggered;
             stop_triggered <= next_stop_triggered;
+            sda <= next_sda;
         end if;
 end process;
 end architecture;

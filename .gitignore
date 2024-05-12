@@ -3,6 +3,7 @@ VIVADO/puf_24l_i2c.sim
 VIVADO/puf_24l_i2c.ip_user_files
 VIVADO/puf_24l_i2c.runs
 VIVADO/puf_24l_i2c.hw
+VIVADO/puf_24l_i2c.gen
 *.log
 *.jou
 *.str

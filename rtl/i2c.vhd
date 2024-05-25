@@ -7,8 +7,8 @@ entity i2c is
     port(
         --scl_vec: inout std_logic_vector(0 to 0);
         --sda_vec: inout std_logic_vector(0 to 0);
-        i2c_data : inout std_logic_vector (1 to 0);
-        i2c_ila : out std_logic_vector (1 to 0);
+        i2c_data : inout std_logic_vector (1 downto 0);
+        i2c_ila : out std_logic_vector (1 downto 0);
         clk: in std_logic;
         btn: in std_logic;
         rst: in std_logic
@@ -28,7 +28,7 @@ architecture rtl of i2c is
 begin
 
     scl <= i2c_data(0);
-    sda <= i2c_data(0);
+    sda <= i2c_data(1);
     
     i2c_ila(0) <= scl;
     i2c_ila(1) <= sda;

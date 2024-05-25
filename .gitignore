@@ -1,9 +1,12 @@
-VIVADO/puf_24l_i2c.cache
+VIVADO/VIVADO.cache
+VIVADO/VIVADO.sim
+VIVADO/VIVADO.ip_user_files
+VIVADO/VIVADO.runs
 VIVADO/puf_24l_i2c.sim
 VIVADO/puf_24l_i2c.ip_user_files
 VIVADO/puf_24l_i2c.runs
-VIVADO/puf_24l_i2c.hw
 VIVADO/puf_24l_i2c.gen
+VIVADO/puf_24l_i2c.cache
 *.log
 *.jou
 *.str

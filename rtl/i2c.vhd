@@ -8,10 +8,14 @@ entity i2c is
         --scl_vec: inout std_logic_vector(0 to 0);
         --sda_vec: inout std_logic_vector(0 to 0);
         i2c_data : inout std_logic_vector (1 downto 0);
-        i2c_ila : out std_logic_vector (1 downto 0);
+        --i2c_ila : out std_logic_vector (1 downto 0);
         clk: in std_logic;
         btn: in std_logic;
-        rst: in std_logic
+        rst: in std_logic;
+        
+        dbg1 : out std_logic; --dbg
+        dbg2 : out std_logic; --dbg
+        dbg3 : out std_logic --dbg
     );
 end entity;
 
@@ -25,13 +29,19 @@ architecture rtl of i2c is
                         
     signal s_clk100khz_falling, s_clk100khz_rising : std_logic;
     signal scl, sda : std_logic;
+    
+--    -- ATTRIBUTE DECLARATION --
+--ATTRIBUTE MARK_DEBUG : STRING;
+--ATTRIBUTE MARK_DEBUG OF scl : SIGNAL IS "true";
+--ATTRIBUTE MARK_DEBUG OF sda : SIGNAL IS "true";
+    
 begin
 
     scl <= i2c_data(0);
     sda <= i2c_data(1);
     
-    i2c_ila(0) <= scl;
-    i2c_ila(1) <= sda;
+--    i2c_ila(0) <= scl;
+--    i2c_ila(1) <= sda;
     
     scl_gen: entity work.scl_gen(rtl)
     port map(
@@ -105,7 +115,10 @@ begin
         read_done => s_read_done,
         tx_oe => s_tx_oe,
         clk100khz_falling => s_clk100khz_falling,
-        clk100khz_rising => s_clk100khz_rising
+        clk100khz_rising => s_clk100khz_rising,
+        dbg_state1 => dbg1,
+        dbg_state2 => dbg2,
+        dbg_state3 => dbg3
     );
 
 

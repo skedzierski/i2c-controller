@@ -27,7 +27,7 @@ entity i2c_fsm is
 end entity;
 
 architecture rtl of i2c_fsm is
-    type T_STATE is (IDLE, START, WRITE_DATA, CHECK_ACK, RECEIVE_TMP, SEND_ACK, SEND_NACK, STOP);
+    type T_STATE is (IDLE, START, S_REP_START, WRITE_DATA, CHECK_ACK, RECEIVE_TMP, SEND_ACK, SEND_NACK, STOP);
     signal current_state, next_state: T_STATE;
     signal next_sda : std_logic;
     signal received_msb, next_received_msb, scl_was_falling, next_scl_was_falling  : std_logic;
@@ -94,14 +94,28 @@ is begin
                 next_state <= IDLE;
             end if;
         when START =>
-            gen_start <= '1';
             rep_start <= '1';
             next_state <= START;
             sda <= next_sda;
-            if scl = '1' and clk100khz_falling = '1' and start_triggered = '0' then
+            if scl = '1' and start_triggered = '0' then
+                gen_start <= '1';
                 next_sda <= '0';
                 next_start_triggered <= '1';
             elsif scl = '0' and clk100khz_rising = '1' and start_triggered = '1' then
+                gen_start <= '1';
+                next_state <= WRITE_DATA;
+                next_start_triggered <= '0';
+            end if;
+        when S_REP_START =>
+            rep_start <= '1';
+            next_state <= S_REP_START;
+            sda <= next_sda;
+            if scl = '1' and clk100khz_falling = '1' and start_triggered = '0' then
+                gen_start <= '1';
+                next_sda <= '0';
+                next_start_triggered <= '1';
+            elsif scl = '0' and clk100khz_rising = '1' and start_triggered = '1' then
+                gen_start <= '1';
                 next_state <= WRITE_DATA;
                 next_start_triggered <= '0';
             end if;
@@ -128,7 +142,7 @@ is begin
                 next_clk100khz_falling <= '0';
             elsif rom_index = 2 and s_clk100khz_falling = '1' and clk100khz_rising = '1' then
                 rep_start <= '1';
-                next_state <= START;
+                next_state <= S_REP_START;
                 next_sda <= 'Z';
                 sda <= 'Z';
                 next_scl_was_falling <= '0';

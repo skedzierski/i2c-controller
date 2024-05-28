@@ -11,7 +11,7 @@ entity clkgen is
   end entity;
   
   architecture arch of clkgen is
-    signal int1, int2 : std_logic;
+    signal int1, int2 : std_logic := '0';
   begin
 
     process(clk200khz, reset) is

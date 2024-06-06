@@ -15,7 +15,8 @@ entity i2c is
         
         dbg1 : out std_logic; --dbg
         dbg2 : out std_logic; --dbg
-        dbg3 : out std_logic --dbg
+        dbg3 : out std_logic; --dbg
+        dbg4 : out std_logic --dbg
     );
 end entity;
 
@@ -36,9 +37,10 @@ architecture rtl of i2c is
 --ATTRIBUTE MARK_DEBUG OF sda : SIGNAL IS "true";
     
 begin
-
-    scl <= i2c_data(0);
-    sda <= i2c_data(1);
+    --i2c_data(1) <= 'H';
+    --i2c_data(0) <= 'H';
+    i2c_data(0) <= scl;
+    i2c_data(1) <= sda;
     
 --    i2c_ila(0) <= scl;
 --    i2c_ila(1) <= sda;
@@ -118,7 +120,8 @@ begin
         clk100khz_rising => s_clk100khz_rising,
         dbg_state1 => dbg1,
         dbg_state2 => dbg2,
-        dbg_state3 => dbg3
+        dbg_state3 => dbg3,
+        dbg_state4 => dbg4
     );
 
 

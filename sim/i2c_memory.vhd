@@ -5,8 +5,9 @@ entity i2c_memory is
     port(
         clk: in std_logic;
         rst: in std_logic;                                            
-        scl: in std_logic;
-        sda: inout std_logic 
+--        scl: in std_logic;
+--        sda: inout std_logic
+        i2c_data : inout std_logic_vector (1 downto 0) 
     );
 end entity;
 
@@ -15,6 +16,7 @@ architecture sim of i2c_memory is
     signal s_shift_enable_write, send_done, s_shift_enable_read, read_done, sda_i, sda_o  : std_logic;
     signal s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
     signal shifted_scl, s_oe : std_logic;
+    signal sda, scl : std_logic;
 
     procedure send_ack(signal sda: out std_logic) is
     begin
@@ -25,6 +27,11 @@ architecture sim of i2c_memory is
     end procedure;
 
 begin
+    
+    i2c_data(1) <= 'H';
+    i2c_data(0) <= 'H';
+    scl <= i2c_data(0);
+    sda <= i2c_data(1);
 
     process is 
     begin

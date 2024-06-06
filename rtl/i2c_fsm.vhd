@@ -27,6 +27,7 @@ entity i2c_fsm is
         dbg_state1 : out std_logic; --dbg
         dbg_state2 : out std_logic; --dbg
         dbg_state3 : out std_logic; --dbg
+        dbg_state4 : out std_logic
     );
 end entity;
 
@@ -256,34 +257,47 @@ registers: process(clk, rst) is begin
         dbg_state1 <= '0';
         dbg_state2 <= '0';
         dbg_state3 <= '0';
+        dbg_state4 <= '0';
         when START =>
         dbg_state1 <= '1';
         dbg_state2 <= '0';
         dbg_state3 <= '0';
+        dbg_state4 <= '0';
         when WRITE_DATA =>
         dbg_state1 <= '0';
         dbg_state2 <= '1';
         dbg_state3 <= '0';
+        dbg_state4 <= '0';
         when CHECK_ACK =>
         dbg_state1 <= '1';
         dbg_state2 <= '1';
         dbg_state3 <= '0';
+        dbg_state4 <= '0';
         when RECEIVE_TMP =>
         dbg_state1 <= '0';
         dbg_state2 <= '0';
         dbg_state3 <= '1';
+        dbg_state4 <= '0';
         when SEND_ACK =>
         dbg_state1 <= '1';
         dbg_state2 <= '0';
         dbg_state3 <= '1';
+        dbg_state4 <= '0';
         when SEND_NACK =>
         dbg_state1 <= '0';
         dbg_state2 <= '1';
         dbg_state3 <= '1';
+        dbg_state4 <= '0';
         when STOP => 
         dbg_state1 <= '1';
         dbg_state2 <= '1';
         dbg_state3 <= '1';
+        dbg_state4 <= '0';
+        when S_REP_START =>
+        dbg_state1 <= '0';
+        dbg_state2 <= '0';
+        dbg_state3 <= '0';
+        dbg_state4 <= '1';
         end case;
         
     

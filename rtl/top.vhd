@@ -101,7 +101,8 @@ port map
         
         dbg1 => pio1,
         dbg2 => pio2,
-        dbg3 => pio3
+        dbg3 => pio3,
+        dbg4 => pio4
     );
 
 end architecture;

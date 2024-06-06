@@ -22,7 +22,11 @@ entity i2c_fsm is
         read_done: in std_logic;
         tx_oe: out std_logic;
         clk100khz_falling: in std_logic;
-        clk100khz_rising: in std_logic
+        clk100khz_rising: in std_logic;
+        
+        dbg_state1 : out std_logic; --dbg
+        dbg_state2 : out std_logic; --dbg
+        dbg_state3 : out std_logic; --dbg
     );
 end entity;
 
@@ -34,8 +38,8 @@ architecture rtl of i2c_fsm is
     signal s_clk100khz_falling, next_clk100khz_falling : std_logic;
     signal s_next_data_to_write : std_logic_vector(7 downto 0);
 
-    constant tmp3_addr_read : std_logic_vector(7 downto 0) := "10010000";
-    constant tmp3_addr_write : std_logic_vector(7 downto 0) := "10010001";
+    constant tmp3_addr_read : std_logic_vector(7 downto 0) := "10010001";
+    constant tmp3_addr_write : std_logic_vector(7 downto 0) := "10010000";
     constant tmp3_ta_pointer : std_logic_vector(7 downto 0) := X"00";
     type rom is array (0 to 3) of std_logic_vector (7 downto 0);
     constant a_rom : rom := (tmp3_addr_write, tmp3_ta_pointer, tmp3_addr_read, "ZZZZZZZZ");
@@ -44,6 +48,7 @@ architecture rtl of i2c_fsm is
 
     signal scl_was_rising, next_scl_was_rising, start_triggered, next_start_triggered : std_logic;
     signal stop_triggered, next_stop_triggered : std_logic;
+    
 begin
 
     --send start (sda low)
@@ -245,6 +250,43 @@ registers: process(clk, rst) is begin
             s_clk100khz_falling <= next_clk100khz_falling;
             start_triggered <= next_start_triggered;
             stop_triggered <= next_stop_triggered;
+            
+        case (current_state) is
+        when IDLE =>
+        dbg_state1 <= '0';
+        dbg_state2 <= '0';
+        dbg_state3 <= '0';
+        when START =>
+        dbg_state1 <= '1';
+        dbg_state2 <= '0';
+        dbg_state3 <= '0';
+        when WRITE_DATA =>
+        dbg_state1 <= '0';
+        dbg_state2 <= '1';
+        dbg_state3 <= '0';
+        when CHECK_ACK =>
+        dbg_state1 <= '1';
+        dbg_state2 <= '1';
+        dbg_state3 <= '0';
+        when RECEIVE_TMP =>
+        dbg_state1 <= '0';
+        dbg_state2 <= '0';
+        dbg_state3 <= '1';
+        when SEND_ACK =>
+        dbg_state1 <= '1';
+        dbg_state2 <= '0';
+        dbg_state3 <= '1';
+        when SEND_NACK =>
+        dbg_state1 <= '0';
+        dbg_state2 <= '1';
+        dbg_state3 <= '1';
+        when STOP => 
+        dbg_state1 <= '1';
+        dbg_state2 <= '1';
+        dbg_state3 <= '1';
+        end case;
+        
+    
         end if;
 end process;
 end architecture;

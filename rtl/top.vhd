@@ -12,7 +12,8 @@ entity top is
         pio1 : out std_logic;
         pio2 : out std_logic;
         pio3 : out std_logic;
-        pio4 : out std_logic
+        pio4 : out std_logic;
+        pio : out std_logic_vector(7 downto 0)
     );
 
 end;
@@ -108,7 +109,8 @@ port map
         dbg1 => pio1,
         dbg2 => pio2,
         dbg3 => pio3,
-        dbg4 => pio4
+        dbg4 => pio4,
+        pio => pio
     );
 
 end architecture;

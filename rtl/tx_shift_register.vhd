@@ -54,12 +54,12 @@ begin
 
         if oe = '1' then
             if s_data(data_width-1) = '1' then
-                serial_data <= 'Z';
+                serial_data <= '1';
             else
                 serial_data <= '0';
             end if;
         else
-            serial_data <= 'Z';
+            serial_data <= '1';
         end if;
     end process;
     

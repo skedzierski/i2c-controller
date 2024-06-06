@@ -19,7 +19,8 @@ entity i2c is
         dbg1 : out std_logic; --dbg
         dbg2 : out std_logic; --dbg
         dbg3 : out std_logic; --dbg
-        dbg4 : out std_logic --dbg
+        dbg4 : out std_logic; --dbg
+        pio : out std_logic_vector (7 downto 0)
     );
 end entity;
 
@@ -43,6 +44,14 @@ begin
 
     sda_o <= sda_tx when s_tx_oe = '1' else sda_fsm;
     scl_o <= scl;
+    
+--    process(all) is begin
+--    if scl_i = '1' then
+--        dbg1 <= '1';
+--    else
+--        dbg1 <= '0';
+--    end if;
+--    end process;
     
     -- if s_tx_oe = '1' then
     --     sda_o <= sda_tx;
@@ -99,7 +108,7 @@ begin
     clk => s_clk100khz,
     rst => rst,
     shift_enable => s_shift_enable_read,
-    parallel_data => s_data_to_read,
+    parallel_data => pio,
     serial_data => sda_i,
     irq => s_read_done
     );

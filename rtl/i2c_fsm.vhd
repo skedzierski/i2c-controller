@@ -43,12 +43,13 @@ architecture rtl of i2c_fsm is
     constant tmp3_addr_write : std_logic_vector(7 downto 0) := "10010000";
     constant tmp3_ta_pointer : std_logic_vector(7 downto 0) := X"00";
     type rom is array (0 to 3) of std_logic_vector (7 downto 0);
-    constant a_rom : rom := (tmp3_addr_write, tmp3_ta_pointer, tmp3_addr_read, "ZZZZZZZZ");
+    constant a_rom : rom := (tmp3_addr_write, tmp3_ta_pointer, tmp3_addr_read, "11111111");
     signal rom_index, next_rom_index : natural;
     signal edge_counter, next_edge_counter : natural;
 
     signal scl_was_rising, next_scl_was_rising, start_triggered, next_start_triggered : std_logic;
     signal stop_triggered, next_stop_triggered : std_logic;
+    signal next_dbg_state4, reg_dbg_state4 : std_logic;
     
 begin
 
@@ -91,6 +92,8 @@ is begin
     next_scl_was_rising <= scl_was_rising;
     next_sda <= sda;
     next_clk100khz_falling <= s_clk100khz_falling;
+    --next_dbg_state4 <= reg_dbg_state4;
+    dbg_state4 <= next_sda;
     case (current_state) is
         when IDLE =>
             if btn = '1' then
@@ -113,6 +116,7 @@ is begin
                 next_start_triggered <= '0';
             end if;
         when S_REP_START =>
+            
             rep_start <= '1';
             next_state <= S_REP_START;
             --sda <= next_sda;
@@ -138,6 +142,7 @@ is begin
             end if;
             next_edge_counter <= 0;
         when CHECK_ACK =>
+            next_sda <= '1';
             next_state <= CHECK_ACK;
             if clk100khz_falling = '1' then 
                 next_clk100khz_falling <= '1';
@@ -152,7 +157,6 @@ is begin
                 rep_start <= '1';
                 next_state <= S_REP_START;
                 next_sda <= '1';
-                --sda <= 'Z';
                 next_scl_was_falling <= '0';
                 next_clk100khz_falling <= '0';
             elsif s_clk100khz_falling = '1' and clk100khz_rising = '1' then
@@ -162,6 +166,7 @@ is begin
                 next_clk100khz_falling <= '0';
             end if;
         when RECEIVE_TMP =>
+            next_sda <= '1';
             shift_enable_read <= '1';
             if read_done = '1' then
                 if received_msb = '0' then
@@ -183,7 +188,7 @@ is begin
             if clk100khz_rising = '1' then
                 next_sda <= '0';
             end if;
-            if scl_rising = '1' then
+            if scl_falling = '1' then
                 next_sda <= '1';
             end if;
             if clk100khz_rising = '1' and scl_was_rising = '1' then
@@ -192,6 +197,7 @@ is begin
                 next_scl_was_rising <= '0';
             end if;
         when SEND_NACK =>
+            next_sda <= '1';
             next_state <= SEND_NACK;
             next_received_msb <= '0';
             if clk100khz_falling = '1' then
@@ -224,7 +230,7 @@ is begin
             end if;
 
             if scl_falling = '1' and scl_was_falling = '1' then
-                next_state <= START;
+                next_state <= S_REP_START;
                 next_scl_was_falling <= '0';
                 next_stop_triggered <= '0';
             end if;
@@ -244,7 +250,8 @@ registers: process(clk, rst) is begin
             s_clk100khz_falling <= '0';
             start_triggered <= '0';
             stop_triggered <= '0';
-            sda <= 'Z';
+            sda <= '1';
+            reg_dbg_state4 <= '0';
         elsif rising_edge(clk) then
             current_state <= next_state;
             received_msb <= next_received_msb;
@@ -256,58 +263,56 @@ registers: process(clk, rst) is begin
             s_clk100khz_falling <= next_clk100khz_falling;
             start_triggered <= next_start_triggered;
             stop_triggered <= next_stop_triggered;
-            if next_sda = '1' then
-                sda <= 'Z';
-            else
-                sda <= '0';
-            end if;
+            --reg_dbg_state4 <= next_dbg_state4;
+            --dbg_state4 <= reg_dbg_state4;
+            sda <= next_sda;
             
         case (current_state) is
         when IDLE =>
         dbg_state1 <= '0';
         dbg_state2 <= '0';
         dbg_state3 <= '0';
-        dbg_state4 <= '0';
+        --dbg_state4 <= '0';
         when START =>
         dbg_state1 <= '1';
         dbg_state2 <= '0';
         dbg_state3 <= '0';
-        dbg_state4 <= '0';
+        --dbg_state4 <= '0';
         when WRITE_DATA =>
         dbg_state1 <= '0';
         dbg_state2 <= '1';
         dbg_state3 <= '0';
-        dbg_state4 <= '0';
+        --dbg_state4 <= '0';
         when CHECK_ACK =>
         dbg_state1 <= '1';
         dbg_state2 <= '1';
         dbg_state3 <= '0';
-        dbg_state4 <= '0';
+        --dbg_state4 <= '0';
         when RECEIVE_TMP =>
         dbg_state1 <= '0';
         dbg_state2 <= '0';
         dbg_state3 <= '1';
-        dbg_state4 <= '0';
+        --dbg_state4 <= '0';
         when SEND_ACK =>
         dbg_state1 <= '1';
         dbg_state2 <= '0';
         dbg_state3 <= '1';
-        dbg_state4 <= '0';
+        --dbg_state4 <= '0';
         when SEND_NACK =>
         dbg_state1 <= '0';
         dbg_state2 <= '1';
         dbg_state3 <= '1';
-        dbg_state4 <= '0';
+        --dbg_state4 <= '0';
         when STOP => 
         dbg_state1 <= '1';
         dbg_state2 <= '1';
         dbg_state3 <= '1';
-        dbg_state4 <= '0';
+        --dbg_state4 <= '0';
         when S_REP_START =>
         dbg_state1 <= '0';
         dbg_state2 <= '0';
         dbg_state3 <= '0';
-        dbg_state4 <= '1';
+        --dbg_state4 <= '1';
         end case;
         
     

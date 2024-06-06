@@ -136,7 +136,6 @@ is begin
             end if;
             next_edge_counter <= 0;
         when CHECK_ACK =>
-            sda <= '0';
             next_state <= CHECK_ACK;
             if clk100khz_falling = '1' then 
                 next_clk100khz_falling <= '1';

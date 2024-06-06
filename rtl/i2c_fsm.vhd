@@ -108,7 +108,7 @@ is begin
                 next_start_triggered <= '1';
             elsif scl = '0' and clk100khz_rising = '1' and start_triggered = '1' then
                 gen_start <= '1';
-                next_sda <= 'Z';
+                next_sda <= '1';
                 next_state <= WRITE_DATA;
                 next_start_triggered <= '0';
             end if;
@@ -122,12 +122,12 @@ is begin
                 next_start_triggered <= '1';
             elsif scl = '0' and clk100khz_rising = '1' and start_triggered = '1' then
                 gen_start <= '1';
-                next_sda <= 'Z';
+                next_sda <= '1';
                 next_state <= WRITE_DATA;
                 next_start_triggered <= '0';
             end if;
         when WRITE_DATA =>
-            next_sda <= 'Z';
+            next_sda <= '1';
             shift_enable_write <= '1';
             tx_oe <= '1';
             if send_done = '1' then
@@ -144,20 +144,20 @@ is begin
             end if;
             if rom_index = 3 and s_clk100khz_falling = '1' and clk100khz_rising = '1' then
                 next_state <= RECEIVE_TMP;
-                next_sda <= 'Z';
+                next_sda <= '1';
                 next_rom_index <= 0;
                 next_scl_was_falling <= '0';
                 next_clk100khz_falling <= '0';
             elsif rom_index = 2 and s_clk100khz_falling = '1' and clk100khz_rising = '1' then
                 rep_start <= '1';
                 next_state <= S_REP_START;
-                next_sda <= 'Z';
+                next_sda <= '1';
                 --sda <= 'Z';
                 next_scl_was_falling <= '0';
                 next_clk100khz_falling <= '0';
             elsif s_clk100khz_falling = '1' and clk100khz_rising = '1' then
                 next_state <= WRITE_DATA;
-                next_sda <= 'Z';
+                next_sda <= '1';
                 next_scl_was_falling <= '0';
                 next_clk100khz_falling <= '0';
             end if;
@@ -184,11 +184,11 @@ is begin
                 next_sda <= '0';
             end if;
             if scl_rising = '1' then
-                next_sda <= 'Z';
+                next_sda <= '1';
             end if;
             if clk100khz_rising = '1' and scl_was_rising = '1' then
                 next_state <= RECEIVE_TMP;
-                next_sda <= 'Z';
+                next_sda <= '1';
                 next_scl_was_rising <= '0';
             end if;
         when SEND_NACK =>
@@ -219,7 +219,7 @@ is begin
             end if;
             
             if clk100khz_falling = '1' then
-                next_sda <= 'Z';
+                next_sda <= '1';
                 next_stop_triggered <= '1';
             end if;
 
@@ -256,7 +256,11 @@ registers: process(clk, rst) is begin
             s_clk100khz_falling <= next_clk100khz_falling;
             start_triggered <= next_start_triggered;
             stop_triggered <= next_stop_triggered;
-            sda <= next_sda;
+            if next_sda = '1' then
+                sda <= 'Z';
+            else
+                sda <= '0';
+            end if;
             
         case (current_state) is
         when IDLE =>

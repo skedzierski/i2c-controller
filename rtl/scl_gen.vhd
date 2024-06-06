@@ -12,7 +12,8 @@ port(
     rep_start: in std_logic;
     gen_stop: in std_logic;
     o_scl: out std_logic;
-    clk100khz: out std_logic
+    clk100khz: out std_logic;
+    stretch_low : in std_logic
 );
 
 end entity;
@@ -21,15 +22,25 @@ architecture rtl of scl_gen is
     signal CURRENT_STATE : SCL_STATE := IDLE;
     signal NEXT_STATE: SCL_STATE;
     signal counter_reset: std_logic;
-    signal overflow_500, overflow_250: std_logic;
+    signal overflow_1000, overflow_500, overflow_250: std_logic;
     signal clk200khz: std_logic;
 begin
+
+    count_1000: entity work.generic_counter(rtl)
+        generic map(counter_width => 16, edge_sel => POS)
+        port map(
+            clk => fpga_clk,
+            rst => counter_reset,
+            preload => X"02ED", -- 500 decimal
+            o_cnt => overflow_1000
+        );
+        
     count_500: entity work.generic_counter(rtl)
         generic map(counter_width => 8, edge_sel => POS)
         port map(
             clk => fpga_clk,
             rst => counter_reset,
-            preload => X"FA", -- 500 decimal
+            preload => X"F9", -- 250 decimal
             o_cnt => overflow_500
         );
 
@@ -38,7 +49,7 @@ begin
         port map(
             clk => fpga_clk,
             rst => counter_reset,
-            preload => X"7D", -- 250 decimal
+            preload => X"7C", -- 125 decimal
             o_cnt => overflow_250
         );
     
@@ -84,12 +95,20 @@ begin
 
             when SCL_LOW =>
                 clk200khz <= '0';
-                if(overflow_500 = '1') then
-                    NEXT_STATE <= SCL_HI_EDGE;
-                else 
-                    NEXT_STATE <= SCL_LOW;
-                end if;
-
+                --if stretch_low = '0' then
+                    if(overflow_500 = '1') then
+                        NEXT_STATE <= SCL_HI_EDGE;
+                    else 
+                        NEXT_STATE <= SCL_LOW;
+                    end if;
+                --else
+                    --if(overflow_1000 = '1') then
+                        --NEXT_STATE <= SCL_HI_EDGE;
+                    --else 
+                        --NEXT_STATE <= SCL_LOW;
+                    --end if;
+                --end if;
+                    
             when SCL_HI_EDGE =>
                 clk200khz <= '1';
                 --clk_cnt <= 0;

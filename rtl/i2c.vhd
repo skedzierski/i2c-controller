@@ -21,7 +21,7 @@ entity i2c is
 end entity;
 
 architecture rtl of i2c is
-    signal s_gen_start, s_gen_stop, s_rep_start, s_clk100khz : std_logic;
+    signal s_gen_start, s_gen_stop, s_rep_start, s_clk100khz, s_stretch_low : std_logic;
     signal s_scl_rising, s_scl_falling : std_logic;
     signal s_tx_oe : std_logic;
     
@@ -29,7 +29,7 @@ architecture rtl of i2c is
     signal s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
                         
     signal s_clk100khz_falling, s_clk100khz_rising : std_logic;
-    signal scl, sda : std_logic;
+    signal scl, sda, sda_tx, sda_fsm : std_logic;
     
 --    -- ATTRIBUTE DECLARATION --
 --ATTRIBUTE MARK_DEBUG : STRING;
@@ -41,6 +41,13 @@ begin
     --i2c_data(0) <= 'H';
     i2c_data(0) <= scl;
     i2c_data(1) <= sda;
+--    process(all) is begin
+--        if s_tx_oe = '1' then
+--            sda <= sda_tx;
+--        else
+--            sda <= sda_fsm;
+--        end if;
+--    end process;
     
 --    i2c_ila(0) <= scl;
 --    i2c_ila(1) <= sda;
@@ -53,7 +60,8 @@ begin
     rep_start => s_rep_start,
     gen_stop => s_gen_stop,
     o_scl => scl,
-    clk100khz => s_clk100khz
+    clk100khz => s_clk100khz,
+    stretch_low => s_stretch_low
     );
 
     scl_edge_detector: entity work.edge_detector(rtl)

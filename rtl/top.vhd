@@ -54,11 +54,14 @@ END COMPONENT;
         --signal s_probe0 : std_logic_vector(1 downto 0);
 
         -- VIO
-        signal s_probe_out0 : std_logic_vector(1 downto 0);
+        signal s_probe_out0, s_i2c_data: std_logic_vector(1 downto 0);
         signal s_btn : std_logic;
         
 
 begin
+
+ja(0) <= 'Z' when s_i2c_data(0) = '1' else '0';
+ja(1) <= 'Z' when s_i2c_data(1) = '1' else '0';
 
 led(0) <= s_resetn;
 led(1) <= s_locked;
@@ -93,7 +96,10 @@ pll : clk_wiz_0
 i2c_0: entity work.i2c(rtl)
 port map
     (
-        i2c_data => ja,
+        scl_o => s_i2c_data(0),
+        sda_o => s_i2c_data(1),
+        scl_i => ja(0),
+        sda_i => ja(1),
         --i2c_ila => s_probe0,
         clk => s_clk,
         btn => s_btn,

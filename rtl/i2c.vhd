@@ -7,7 +7,10 @@ entity i2c is
     port(
         --scl_vec: inout std_logic_vector(0 to 0);
         --sda_vec: inout std_logic_vector(0 to 0);
-        i2c_data : inout std_logic_vector (1 downto 0);
+        scl_o : out std_logic;
+        sda_o : out std_logic;
+        scl_i : in std_logic;
+        sda_i : in std_logic;
         --i2c_ila : out std_logic_vector (1 downto 0);
         clk: in std_logic;
         btn: in std_logic;
@@ -29,7 +32,7 @@ architecture rtl of i2c is
     signal s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
                         
     signal s_clk100khz_falling, s_clk100khz_rising : std_logic;
-    signal scl, sda, sda_tx, sda_fsm : std_logic;
+    signal scl, sda, sda_tx, i_sda, sda_fsm : std_logic;
     
 --    -- ATTRIBUTE DECLARATION --
 --ATTRIBUTE MARK_DEBUG : STRING;
@@ -37,20 +40,15 @@ architecture rtl of i2c is
 --ATTRIBUTE MARK_DEBUG OF sda : SIGNAL IS "true";
     
 begin
-    --i2c_data(1) <= 'H';
-    --i2c_data(0) <= 'H';
-    i2c_data(0) <= scl;
-    i2c_data(1) <= sda;
---    process(all) is begin
---        if s_tx_oe = '1' then
---            sda <= sda_tx;
---        else
---            sda <= sda_fsm;
---        end if;
---    end process;
+
+    sda_o <= sda_tx when s_tx_oe = '1' else sda_fsm;
+    scl_o <= scl;
     
---    i2c_ila(0) <= scl;
---    i2c_ila(1) <= sda;
+    -- if s_tx_oe = '1' then
+    --     sda_o <= sda_tx;
+    -- else
+    --     sda_o <= sda_fsm;
+    -- end if;
     
     scl_gen: entity work.scl_gen(rtl)
     port map(
@@ -91,7 +89,7 @@ begin
     shift_enable => s_shift_enable_write,
     oe => s_tx_oe,
     parallel_data => s_data_to_write,
-    serial_data => sda,
+    serial_data => sda_tx,
     irq => s_send_done
     );
 
@@ -102,14 +100,14 @@ begin
     rst => rst,
     shift_enable => s_shift_enable_read,
     parallel_data => s_data_to_read,
-    serial_data => sda,
+    serial_data => sda_i,
     irq => s_read_done
     );
     
     i2c_fsm: entity work.i2c_fsm(rtl)
     port map(
         scl => scl,
-        sda => sda,
+        sda => sda_fsm,
         clk => clk,
         btn => btn,
         rst => rst,

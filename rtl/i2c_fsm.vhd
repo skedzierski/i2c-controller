@@ -51,6 +51,9 @@ architecture rtl of i2c_fsm is
     signal stop_triggered, next_stop_triggered : std_logic;
     signal next_dbg_state4, reg_dbg_state4 : std_logic;
     
+    ATTRIBUTE MARK_DEBUG : STRING;
+    ATTRIBUTE MARK_DEBUG OF current_state : SIGNAL IS "true";
+    
 begin
 
     --send start (sda low)

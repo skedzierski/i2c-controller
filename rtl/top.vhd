@@ -58,6 +58,17 @@ END COMPONENT;
         signal s_probe_out0, s_i2c_data: std_logic_vector(1 downto 0);
         signal s_btn : std_logic;
         
+            -- ATTRIBUTE DECLARATION --
+ATTRIBUTE MARK_DEBUG : STRING;
+ATTRIBUTE MARK_DEBUG OF ja : SIGNAL IS "true";
+ATTRIBUTE MARK_DEBUG OF s_i2c_data : SIGNAL IS "true";
+ATTRIBUTE MARK_DEBUG OF led : SIGNAL IS "true";
+--ATTRIBUTE MARK_DEBUG OF pio1 : SIGNAL IS "true";
+--ATTRIBUTE MARK_DEBUG OF pio2 : SIGNAL IS "true";
+--ATTRIBUTE MARK_DEBUG OF pio3 : SIGNAL IS "true";
+--ATTRIBUTE MARK_DEBUG OF pio4 : SIGNAL IS "true";
+--ATTRIBUTE MARK_DEBUG OF pio : SIGNAL IS "true";
+        
 
 begin
 

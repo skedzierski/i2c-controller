@@ -24,6 +24,9 @@ architecture rtl of scl_gen is
     signal counter_reset: std_logic;
     signal overflow_1000, overflow_500, overflow_250: std_logic;
     signal clk200khz: std_logic;
+    
+    ATTRIBUTE MARK_DEBUG : STRING;
+    ATTRIBUTE MARK_DEBUG OF clk200khz : SIGNAL IS "true";
 begin
 
     count_1000: entity work.generic_counter(rtl)

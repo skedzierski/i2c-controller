@@ -35,9 +35,9 @@ begin
 
     clk_gen : process is begin
         s_clk <= '1';
-        wait for 5 ns;
+        wait for 83.33 ns;
         s_clk <= '0';
-        wait for 5 ns;
+        wait for 83.33 ns;
     end process;
     
     clk_gen_master : process is begin

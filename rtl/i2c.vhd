@@ -35,10 +35,8 @@ architecture rtl of i2c is
     signal s_clk100khz_falling, s_clk100khz_rising : std_logic;
     signal scl, sda, sda_tx, i_sda, sda_fsm : std_logic;
     
---    -- ATTRIBUTE DECLARATION --
---ATTRIBUTE MARK_DEBUG : STRING;
---ATTRIBUTE MARK_DEBUG OF scl : SIGNAL IS "true";
---ATTRIBUTE MARK_DEBUG OF sda : SIGNAL IS "true";
+    ATTRIBUTE MARK_DEBUG : STRING;
+    ATTRIBUTE MARK_DEBUG OF pio : SIGNAL IS "true";
     
 begin
 

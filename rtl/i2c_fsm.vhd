@@ -22,12 +22,8 @@ entity i2c_fsm is
         read_done: in std_logic;
         tx_oe: out std_logic;
         clk100khz_falling: in std_logic;
-        clk100khz_rising: in std_logic;
+        clk100khz_rising: in std_logic
         
-        dbg_state1 : out std_logic; --dbg
-        dbg_state2 : out std_logic; --dbg
-        dbg_state3 : out std_logic; --dbg
-        dbg_state4 : out std_logic
     );
 end entity;
 
@@ -95,8 +91,6 @@ is begin
     next_scl_was_rising <= scl_was_rising;
     next_sda <= sda;
     next_clk100khz_falling <= s_clk100khz_falling;
-    --next_dbg_state4 <= reg_dbg_state4;
-    dbg_state4 <= next_sda;
     case (current_state) is
         when IDLE =>
             if btn = '1' then
@@ -254,7 +248,6 @@ registers: process(clk, rst) is begin
             start_triggered <= '0';
             stop_triggered <= '0';
             sda <= '1';
-            reg_dbg_state4 <= '0';
         elsif rising_edge(clk) then
             current_state <= next_state;
             received_msb <= next_received_msb;
@@ -266,59 +259,7 @@ registers: process(clk, rst) is begin
             s_clk100khz_falling <= next_clk100khz_falling;
             start_triggered <= next_start_triggered;
             stop_triggered <= next_stop_triggered;
-            --reg_dbg_state4 <= next_dbg_state4;
-            --dbg_state4 <= reg_dbg_state4;
             sda <= next_sda;
-            
-        case (current_state) is
-        when IDLE =>
-        dbg_state1 <= '0';
-        dbg_state2 <= '0';
-        dbg_state3 <= '0';
-        --dbg_state4 <= '0';
-        when START =>
-        dbg_state1 <= '1';
-        dbg_state2 <= '0';
-        dbg_state3 <= '0';
-        --dbg_state4 <= '0';
-        when WRITE_DATA =>
-        dbg_state1 <= '0';
-        dbg_state2 <= '1';
-        dbg_state3 <= '0';
-        --dbg_state4 <= '0';
-        when CHECK_ACK =>
-        dbg_state1 <= '1';
-        dbg_state2 <= '1';
-        dbg_state3 <= '0';
-        --dbg_state4 <= '0';
-        when RECEIVE_TMP =>
-        dbg_state1 <= '0';
-        dbg_state2 <= '0';
-        dbg_state3 <= '1';
-        --dbg_state4 <= '0';
-        when SEND_ACK =>
-        dbg_state1 <= '1';
-        dbg_state2 <= '0';
-        dbg_state3 <= '1';
-        --dbg_state4 <= '0';
-        when SEND_NACK =>
-        dbg_state1 <= '0';
-        dbg_state2 <= '1';
-        dbg_state3 <= '1';
-        --dbg_state4 <= '0';
-        when STOP => 
-        dbg_state1 <= '1';
-        dbg_state2 <= '1';
-        dbg_state3 <= '1';
-        --dbg_state4 <= '0';
-        when S_REP_START =>
-        dbg_state1 <= '0';
-        dbg_state2 <= '0';
-        dbg_state3 <= '0';
-        --dbg_state4 <= '1';
-        end case;
-        
-    
         end if;
-end process;
+    end process;
 end architecture;

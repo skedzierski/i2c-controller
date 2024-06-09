@@ -15,11 +15,6 @@ entity i2c is
         clk: in std_logic;
         btn: in std_logic;
         rst: in std_logic;
-        
-        dbg1 : out std_logic; --dbg
-        dbg2 : out std_logic; --dbg
-        dbg3 : out std_logic; --dbg
-        dbg4 : out std_logic; --dbg
         pio : out std_logic_vector (7 downto 0)
     );
 end entity;
@@ -130,11 +125,7 @@ begin
         read_done => s_read_done,
         tx_oe => s_tx_oe,
         clk100khz_falling => s_clk100khz_falling,
-        clk100khz_rising => s_clk100khz_rising,
-        dbg_state1 => dbg1,
-        dbg_state2 => dbg2,
-        dbg_state3 => dbg3,
-        dbg_state4 => dbg4
+        clk100khz_rising => s_clk100khz_rising
     );
 
 

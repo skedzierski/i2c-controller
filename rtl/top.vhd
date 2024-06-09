@@ -8,11 +8,6 @@ entity top is
         clk: in std_logic;
         ja: inout std_logic_vector(1 downto 0);
         led: out std_logic_vector(3 downto 0);
-        
-        pio1 : out std_logic;
-        pio2 : out std_logic;
-        pio3 : out std_logic;
-        pio4 : out std_logic;
         pio : out std_logic_vector(7 downto 0)
     );
 
@@ -117,10 +112,6 @@ port map
         btn => s_btn,
         rst => s_locked,
         
-        dbg1 => pio1,
-        dbg2 => pio2,
-        dbg3 => pio3,
-        dbg4 => pio4,
         pio => pio
     );
 

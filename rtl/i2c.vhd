@@ -15,7 +15,8 @@ entity i2c is
         clk: in std_logic;
         btn: in std_logic;
         rst: in std_logic;
-        pio : out std_logic_vector (7 downto 0)
+
+        temperature_o: out std_logic_vector(15 downto 0)
     );
 end entity;
 
@@ -25,13 +26,14 @@ architecture rtl of i2c is
     signal s_tx_oe : std_logic;
     
     signal s_shift_enable_write, s_send_done, s_shift_enable_read, s_read_done  : std_logic;
-    signal s_data_to_write, s_data_to_read : std_logic_vector(7 downto 0);
+    signal s_data_to_write, s_data_to_read, temperature_lo, temperature_hi : std_logic_vector(7 downto 0);
+    signal temperature : std_logic_vector(15 downto 0);
                         
     signal s_clk100khz_falling, s_clk100khz_rising : std_logic;
+    signal int : std_logic := '1';
     signal scl, sda, sda_tx, i_sda, sda_fsm : std_logic;
     
     ATTRIBUTE MARK_DEBUG : STRING;
-    ATTRIBUTE MARK_DEBUG OF pio : SIGNAL IS "true";
     
 begin
 
@@ -101,10 +103,33 @@ begin
     clk => s_clk100khz,
     rst => rst,
     shift_enable => s_shift_enable_read,
-    parallel_data => pio,
+    parallel_data => s_data_to_read,
     serial_data => sda_i,
     irq => s_read_done
     );
+
+    receive_fifo: process(s_read_done, rst) is
+    begin
+        if rst = '0' then
+            temperature_lo <= X"00";
+            temperature_hi <= X"00";
+            int <= '1';
+        elsif rising_edge(s_read_done) then
+            temperature_lo <= s_data_to_read;
+            temperature_hi <= temperature_lo;
+            int <= not int;
+        end if;
+    end process;
+
+    temperature_o <= temperature;
+    read_reg: process(int, rst) is 
+    begin
+        if rst = '0' then
+            temperature <= X"0000";
+        elsif rising_edge(int) then
+            temperature <= temperature_hi & temperature_lo;
+        end if;
+    end process;
     
     i2c_fsm: entity work.i2c_fsm(rtl)
     port map(

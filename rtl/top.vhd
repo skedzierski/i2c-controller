@@ -8,7 +8,7 @@ entity top is
         clk: in std_logic;
         ja: inout std_logic_vector(1 downto 0);
         led: out std_logic_vector(3 downto 0);
-        pio : out std_logic_vector(7 downto 0)
+        temperature_o: out std_logic_vector(15 downto 0)
     );
 
 end;
@@ -58,6 +58,7 @@ ATTRIBUTE MARK_DEBUG : STRING;
 ATTRIBUTE MARK_DEBUG OF ja : SIGNAL IS "true";
 ATTRIBUTE MARK_DEBUG OF s_i2c_data : SIGNAL IS "true";
 ATTRIBUTE MARK_DEBUG OF led : SIGNAL IS "true";
+ATTRIBUTE MARK_DEBUG of temperature_o : SIGNAL IS "true";
 --ATTRIBUTE MARK_DEBUG OF pio1 : SIGNAL IS "true";
 --ATTRIBUTE MARK_DEBUG OF pio2 : SIGNAL IS "true";
 --ATTRIBUTE MARK_DEBUG OF pio3 : SIGNAL IS "true";
@@ -86,11 +87,6 @@ pll : clk_wiz_0
     clk_in1 => clk
   );
 
---  ila : ila_0
---  PORT MAP (
---      clk => s_clk,
---      probe0 => s_probe0
---  );
 
   vio : vio_0
   PORT MAP (
@@ -111,8 +107,7 @@ port map
         clk => s_clk,
         btn => s_btn,
         rst => s_locked,
-        
-        pio => pio
+        temperature_o => temperature_o
     );
 
 end architecture;
